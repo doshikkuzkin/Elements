@@ -41,3 +41,9 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 2008699861
+    locked: 0
+  - name: Playfield
+    uniqueID: 2453638579
+    locked: 0

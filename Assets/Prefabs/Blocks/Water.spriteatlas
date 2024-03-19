@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Water
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 1
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings: []
+    packingSettings:
+      serializedVersion: 2
+      padding: 2
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 1
+      enableTightPacking: 1
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 102900000, guid: d1a7c901554e144b088d0c3459dda02d, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: 810a03307ad3b4825838eccc5bd2cc75, type: 3}
+  - {fileID: 21300000, guid: 24cfa5301d097462e8dfb95011a385ae, type: 3}
+  - {fileID: 21300000, guid: 5a740840160174e3c98b6650b553a1a6, type: 3}
+  - {fileID: 21300000, guid: 23bf658132d7f40b0b5b4ba4a5c54d0d, type: 3}
+  - {fileID: 21300000, guid: d86016c2391fb43ab85543dfddcdc662, type: 3}
+  - {fileID: 21300000, guid: 9a1d91a38f7874bf781aa514ed21fd26, type: 3}
+  - {fileID: 21300000, guid: 31fb0ea3f7cea49758777089ad675fce, type: 3}
+  - {fileID: 21300000, guid: d7e07944ee3134e2f8b3db9f379b79ac, type: 3}
+  - {fileID: 21300000, guid: 1583f3055d86e42b98a15fa6489aed38, type: 3}
+  - {fileID: 21300000, guid: 0b632425f316a404f9a1e88875bc540d, type: 3}
+  - {fileID: 21300000, guid: 810b2b45f6d5e4dc0b03cfa4ae958a61, type: 3}
+  - {fileID: 21300000, guid: 798faee5ddcb341faad5d0941d9ab26d, type: 3}
+  - {fileID: 21300000, guid: f8c9dc96725dc49f7898f31c3f76d9b7, type: 3}
+  - {fileID: 21300000, guid: 7156c8880ed314e0f8f88b32b4f5f14b, type: 3}
+  - {fileID: 21300000, guid: 6cce6c88aa2e2427e8e8269195311feb, type: 3}
+  - {fileID: 21300000, guid: 27fb20b84941348938c55483abef164d, type: 3}
+  - {fileID: 21300000, guid: 357dcec8c935a455eabb187932cf6e93, type: 3}
+  - {fileID: 21300000, guid: 4a11f989b6e214012a74c78b8545f81a, type: 3}
+  - {fileID: 21300000, guid: 1df8fc1acce3340e88129dc62c4ce07b, type: 3}
+  - {fileID: 21300000, guid: 4c3f564a706c047fb99d40843905d323, type: 3}
+  - {fileID: 21300000, guid: 50171ecad17444b2b94d56faf89cfb38, type: 3}
+  - {fileID: 21300000, guid: 5264461ba48f94c1f9d68185a4d2cb36, type: 3}
+  - {fileID: 21300000, guid: cee2f9cbf4be844dc87f32a8f7564282, type: 3}
+  - {fileID: 21300000, guid: 05b59a7cd3b5241a398326ea8ced0eef, type: 3}
+  - {fileID: 21300000, guid: c4390cac9faf44ae184b139ed79da379, type: 3}
+  - {fileID: 21300000, guid: 996726ded69d24c52b4b779a6c5bbdd5, type: 3}
+  - {fileID: 21300000, guid: b1f87b5f799874a45b6618514ef512fc, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - anim_water_idle_7
+  - anim_water_destroy_3
+  - anim_water_idle_4
+  - anim_water_idle_13
+  - anim_water_idle_12
+  - anim_water_idle_9
+  - anim_water_destroy_1
+  - anim_water_destroy_8
+  - anim_water_idle_1
+  - anim_water_idle_0
+  - anim_water_idle_11
+  - anim_water_destroy_2
+  - anim_water_idle_2
+  - anim_water_idle_16
+  - anim_water_idle_10
+  - anim_water_destroy_0
+  - anim_water_idle_5
+  - anim_water_idle_6
+  - anim_water_idle_3
+  - anim_water_destroy_4
+  - anim_water_destroy_9
+  - anim_water_idle_8
+  - anim_water_idle_15
+  - anim_water_idle_14
+  - anim_water_destroy_5
+  - anim_water_destroy_7
+  - anim_water_destroy_6
+  m_RenderDataMap: {}
+  m_Tag: Water
+  m_IsVariant: 0

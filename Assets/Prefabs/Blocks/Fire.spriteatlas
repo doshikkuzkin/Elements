@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Fire
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 1
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings: []
+    packingSettings:
+      serializedVersion: 2
+      padding: 2
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 1
+      enableTightPacking: 1
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 102900000, guid: f297e018424b442ea87e6d60fe96390e, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: 06e947d04ab874d82963e62d96875063, type: 3}
+  - {fileID: 21300000, guid: d21c60519936d4fb2bc6b7f53c314163, type: 3}
+  - {fileID: 21300000, guid: 99e1c9719571348abb0f3a93cf4a27b7, type: 3}
+  - {fileID: 21300000, guid: 87b153d1f557d4947945b60faa1e066a, type: 3}
+  - {fileID: 21300000, guid: c7366832ed295460facdc68f1e15116d, type: 3}
+  - {fileID: 21300000, guid: 724be792c59674ba49df30b5e345d20e, type: 3}
+  - {fileID: 21300000, guid: 06899c92fd031458389fccfe92c6932e, type: 3}
+  - {fileID: 21300000, guid: 77f597e2ccd164905b0935ab8d5d98f8, type: 3}
+  - {fileID: 21300000, guid: 2f2fa6439f89b4873bc99a3e58d78212, type: 3}
+  - {fileID: 21300000, guid: ebeb8b34e5bd1429dbeda1af31795dc2, type: 3}
+  - {fileID: 21300000, guid: e7eacd54d30274491b362ff4899c7614, type: 3}
+  - {fileID: 21300000, guid: 9900c774c37a444b89bec3517cc37d79, type: 3}
+  - {fileID: 21300000, guid: 5a79c1a489e9b4cacace5913b17de038, type: 3}
+  - {fileID: 21300000, guid: 4aeadbb519b9843988ae45daf732a494, type: 3}
+  - {fileID: 21300000, guid: a972089628d1b41b1a470e78b716d662, type: 3}
+  - {fileID: 21300000, guid: 682d39a693fea44eabb4f04e1ed1a961, type: 3}
+  - {fileID: 21300000, guid: 2acd61b67f33b44fbbe011755d4c354f, type: 3}
+  - {fileID: 21300000, guid: 0f353db6bb49346f381f20e78a883683, type: 3}
+  - {fileID: 21300000, guid: 5c4622671977643c7a5c7711696c6f86, type: 3}
+  - {fileID: 21300000, guid: 56c14e19958d8443abcb7acc3a3ee26a, type: 3}
+  - {fileID: 21300000, guid: e051cf0a0f2294f058c84fcfb547f57f, type: 3}
+  - {fileID: 21300000, guid: 6a6f182be9f1d4fc59f657c55d61e5a5, type: 3}
+  - {fileID: 21300000, guid: ff057d5b3857142e18c8e9aa2e11670b, type: 3}
+  - {fileID: 21300000, guid: 75ee6f0c311034fff8c01b69fe976088, type: 3}
+  - {fileID: 21300000, guid: bf3016cca66044c89aef2d9ae0ae3dff, type: 3}
+  - {fileID: 21300000, guid: 59c618ec8c91547b58ef8c94295b8622, type: 3}
+  - {fileID: 21300000, guid: 47ec392e06d1c4db891a31c1c844f7e3, type: 3}
+  - {fileID: 21300000, guid: 06817b7e357f6416c9a4dbc4acf0d9fb, type: 3}
+  - {fileID: 21300000, guid: 837b47ce9ac994baca02abe349b77be5, type: 3}
+  - {fileID: 21300000, guid: 3866d6df0e1d54ba8b4e8b0a0d859ffe, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - anim_fire_idle_0
+  - anim_fire_idle_15
+  - anim_fire_idle_20
+  - anim_fire_idle_10
+  - anim_fire_idle_7
+  - anim_fire_destroy_5
+  - anim_fire_destroy_2
+  - anim_fire_idle_19
+  - anim_fire_idle_8
+  - anim_fire_idle_3
+  - anim_fire_idle_11
+  - anim_fire_destroy_1
+  - anim_fire_idle_6
+  - anim_fire_idle_21
+  - anim_fire_idle_1
+  - anim_fire_idle_14
+  - anim_fire_destroy_3
+  - anim_fire_idle_4
+  - anim_fire_destroy_0
+  - anim_fire_idle_17
+  - anim_fire_destroy_7
+  - anim_fire_destroy_6
+  - anim_fire_idle_18
+  - anim_fire_idle_2
+  - anim_fire_destroy_4
+  - anim_fire_idle_9
+  - anim_fire_idle_13
+  - anim_fire_idle_16
+  - anim_fire_idle_5
+  - anim_fire_idle_12
+  m_RenderDataMap: {}
+  m_Tag: Fire
+  m_IsVariant: 0
