@@ -10,13 +10,11 @@ namespace DefaultNamespace
 		
 		private void OnEnable()
 		{
-			UpdateSortingOrder();
+			UpdateSortingOrder(transform.localPosition);
 		}
 		
-		private void UpdateSortingOrder()
+		public void UpdateSortingOrder(Vector3 position)
 		{
-			var position = transform.position;
-			
 			_sortingGroup.sortingOrder = Mathf.CeilToInt(position.x + position.y);
 		}
 	}

@@ -9,7 +9,7 @@ namespace DefaultNamespace
 
 		private void OnEnable()
 		{
-			_gridSpawner.SpawnGrid(_levelConfig.GridModel);
+			_gridSpawner.SpawnGrid((GridModel) _levelConfig.GridModel.Clone());
 		}
 	}
 }

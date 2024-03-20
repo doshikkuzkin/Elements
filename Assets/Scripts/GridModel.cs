@@ -29,17 +29,6 @@ namespace DefaultNamespace
 
 			return new GridModel(newGrid);
 		}
-
-		public void SetCellValue(int columnIndex, int rowIndex, BlockType blockType)
-		{
-			if (columnIndex < 0 || columnIndex >= ColumnsCount || rowIndex < 0 || rowIndex >= RowsCount)
-			{
-				throw new ArgumentOutOfRangeException();
-			}
-			
-			Grid[columnIndex].Cells[rowIndex] ??= new CellModel();
-			Grid[columnIndex].Cells[rowIndex].SetBlockType(blockType);
-		}
 		
 		public void SetRows(int rows)
 		{
@@ -61,13 +50,13 @@ namespace DefaultNamespace
 		
 		private void CopyGrid(ColumnModel[] source, ColumnModel[] destination)
 		{
-			for (var i = 0; i < source.Length; i++)
+			for (var x = 0; x < source.Length; x++)
 			{
-				for (var j = 0; j < source[i].Cells.Length; j++)
+				for (var y = 0; y < source[x].Cells.Length; y++)
 				{
-					if (i < destination.Length && j < destination[i].Cells.Length)
+					if (x < destination.Length && y < destination[x].Cells.Length)
 					{
-						destination[i].Cells[j] = new CellModel(source[i].Cells[j].BlockType);
+						destination[x].Cells[y] = new CellModel(source[x].Cells[y].BlockType, x, y);
 					}
 				}
 			}
@@ -77,13 +66,13 @@ namespace DefaultNamespace
 		{
 			var grid = new ColumnModel[columns];
 			
-			for (var i = 0; i < columns; i++)
+			for (var x = 0; x < columns; x++)
 			{
-				grid[i] = new ColumnModel {Cells = new CellModel[rows]};
+				grid[x] = new ColumnModel {Cells = new CellModel[rows]};
 
-				for (int j = 0; j < rows; j++)
+				for (var y = 0; y < rows; y++)
 				{
-					grid[i].Cells[j] = new CellModel();
+					grid[x].Cells[y] = new CellModel(BlockType.None, x, y);
 				}
 			}
 

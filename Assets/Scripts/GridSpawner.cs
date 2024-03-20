@@ -5,54 +5,61 @@ namespace DefaultNamespace
 	public class GridSpawner : MonoBehaviour
 	{
 		//Use as args
-		[SerializeField] private Transform _gridPivot;
-		[SerializeField] private Transform _gridParent;
-		[SerializeField] private float _gridCellSize;
-		[SerializeField] private float _maxFieldWidth;
-		
+		[SerializeField] private GridView _gridView;
 		[SerializeField] private GameObject _firePrefab;
 		[SerializeField] private GameObject _waterPrefab;
 
+		public GridModel GridModel { get; private set; }
+		public IGridViewModel GridViewModel { get; private set; }
+
 		public void SpawnGrid(GridModel gridModel)
 		{
-			var gridWidth = _gridCellSize * gridModel.Grid.Length;
-
-			var gridScaleFactor = gridWidth > _maxFieldWidth ? Vector3.one * (_maxFieldWidth / gridWidth) : Vector3.one;
+			GridModel = gridModel;
 			
-			var pivotPosition = _gridParent.position;
-			var startGridPositionX = pivotPosition.x - gridWidth / 2 + _gridCellSize / 2;
-			var startGridPositionY = pivotPosition.y;
+			GridViewModel = new GridViewModel();
+			GridViewModel.InitGrid(gridModel, _gridView);
+			
+			var blocksViews = new BlockView[GridModel.Grid.Length][];
 
 			for (int x = 0; x < gridModel.Grid.Length; x++)
 			{
+				blocksViews[x] = new BlockView[gridModel.Grid[x].Cells.Length];
+				
 				for (int y = 0; y < gridModel.Grid[x].Cells.Length; y++)
 				{
 					var cell = gridModel.Grid[x].Cells[y];
 					
-					SpawnPrefab(cell.BlockType, new Vector3(startGridPositionX + x * _gridCellSize, startGridPositionY + y * _gridCellSize, 0));
+					if (TrySpawnPrefab(cell.BlockType, GridViewModel.GetCellPosition(x, y), out var spawnedObject))
+					{
+						var blockView = spawnedObject.GetComponent<BlockView>();
+						blockView.SetCellModel(cell);
+						
+						blocksViews[x][y] = blockView;
+					}
 				}
 			}
-
-			_gridPivot.localScale = gridScaleFactor;
+			
+			GridViewModel.InitBlocks(blocksViews);
+			GridViewModel.ApplyScaleFactor();
 		}
 		
-		private void SpawnPrefab(BlockType blockType, Vector3 position)
+		private bool TrySpawnPrefab(BlockType blockType, Vector3 position, out GameObject spawnedObject)
 		{
-			GameObject prefab;
+			spawnedObject = null;
 			
 			switch (blockType)
 			{
 				case BlockType.Fire:
-					prefab = _firePrefab;
-					break;
+					spawnedObject = Instantiate(_firePrefab, position, Quaternion.identity, GridViewModel.GridParent);
+					
+					return true;
 				case BlockType.Water:
-					prefab = _waterPrefab;
-					break;
+					spawnedObject = Instantiate(_waterPrefab, position, Quaternion.identity, GridViewModel.GridParent);
+					
+					return true;
 				default:
-					return;
+					return false;
 			}
-
-			Instantiate(prefab, position, Quaternion.identity, _gridParent);
 		}
 	}
 }
