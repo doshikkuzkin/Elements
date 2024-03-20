@@ -58,5 +58,5 @@ SpriteAtlas:
   - anim_water_destroy_13
   - anim_water_destroy_16
   m_RenderDataMap: {}
-  m_Tag: Blocks
+  m_Tag: Common
   m_IsVariant: 0
