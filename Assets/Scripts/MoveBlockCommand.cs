@@ -21,33 +21,73 @@ namespace DefaultNamespace
 
 		public void Execute()
 		{
-			if (IsValidMovement(_cellToMove, _moveDirection))
+			if (!IsValidMovement(_cellToMove, _moveDirection))
 			{
-				var targetCellPosition = _cellToMove + _moveDirection;
+				return;
+			}
+			
+			var targetCellPosition = _cellToMove + _moveDirection;
 				
-				MoveBlock(targetCellPosition);
+			MoveBlock(targetCellPosition);
 				
-				UpdateViews(targetCellPosition);
-				
-				TryNormalize();
+			MoveCellsViews(_cellToMove, targetCellPosition, _moveDirection);
+
+			while (TryNormalize())
+			{
+				continue;
 			}
 		}
 
 		private bool TryNormalize()
 		{
-			if (TryGetColumnsToMove(out _))
+			if (TryGetColumnsToMove(out var columnsToMove))
 			{
-				//
+				MoveColumns(columnsToMove);
+				
 				return true;
 			}
 
-			if (TryGetCellsToDestroy(out _))
+			if (TryGetCellsToDestroy(out var cellsToDestroy))
 			{
-				//
+				DestroyCells(cellsToDestroy);
+				
 				return true;
 			}
 
 			return false;
+		}
+
+		private void MoveColumns(List<ColumnModel> columnsToMove)
+		{
+			foreach (var column in columnsToMove)
+			{
+				for (int i = 1; i < column.Cells.Length; i++)
+				{
+					if (column.Cells[i].BlockType == BlockType.None || column.Cells[i - 1].BlockType != BlockType.None)
+					{
+						continue;
+					}
+
+					var firstEmptyCell = column.Cells.First(cell => cell.BlockType == BlockType.None);
+
+					var cellToMove = column.Cells[i].Position;
+					var firstEmptyCellPosition = firstEmptyCell.Position;
+					
+					_gridViewModel.SwapCells(cellToMove, firstEmptyCellPosition);
+					
+					MoveCellsViews(cellToMove, firstEmptyCellPosition, Vector2Int.down);
+				}
+			}
+		}
+		
+		private void DestroyCells(List<CellModel> cellsToDestroy)
+		{
+			foreach (var cell in cellsToDestroy)
+			{
+				cell.SetBlockType(BlockType.None);
+			}
+
+			DestroyCellsViews(cellsToDestroy);
 		}
 
 		private bool TryGetColumnsToMove(out List<ColumnModel> columnsToMove)
@@ -56,10 +96,9 @@ namespace DefaultNamespace
 
 			columnsToMove = grid.Where(column =>
 					column.Cells.Where(cell => cell.Position.y > 0)
-						.Any(cell => _gridViewModel.IsEmptyCell(new Vector2Int(cell.Position.x, cell.Position.y - 1))))
+						.Any(cell => cell.BlockType != BlockType.None && _gridViewModel.IsEmptyCell(new Vector2Int(cell.Position.x, cell.Position.y - 1))))
 				.ToList();
 
-			return false;
 			return columnsToMove.Any();
 		}
 		
@@ -209,23 +248,28 @@ namespace DefaultNamespace
 			_gridViewModel.SwapCells(_cellToMove, targetCellPosition);
 		}
 
-		private void UpdateViews(Vector2Int targetCellPosition)
+		private void DestroyCellsViews(List<CellModel> cellsToDestroy)
 		{
-			_gridViewModel.TryGetBlockView(_cellToMove, out var blockToMove);
+			_gridViewModel.DestroyCellsViews(cellsToDestroy);
+		}
+
+		private void MoveCellsViews(Vector2Int cellToMove, Vector2Int targetCellPosition, Vector2Int moveDirection)
+		{
+			_gridViewModel.TryGetBlockView(cellToMove, out var blockToMove);
 			_gridViewModel.TryGetBlockView(targetCellPosition, out var blockToSwapWith);
 				
 			var startBlockPosition = _gridViewModel.GetCellPositionLocal(blockToMove.CellModel.Position.x, blockToMove.CellModel.Position.y);
 				
-			blockToMove.MoveBlock(startBlockPosition, _moveDirection, _gridViewModel.CellSize);
+			blockToMove.MoveBlock(startBlockPosition, moveDirection, _gridViewModel.CellSize);
 
 			if (blockToSwapWith != null)
 			{
 				var startSwapBlockPosition = _gridViewModel.GetCellPositionLocal(blockToSwapWith.CellModel.Position.x, blockToSwapWith.CellModel.Position.y);
 					
-				blockToSwapWith.MoveBlock(startSwapBlockPosition, _moveDirection * -1, _gridViewModel.CellSize);
+				blockToSwapWith.MoveBlock(startSwapBlockPosition, moveDirection * -1, _gridViewModel.CellSize);
 			}
 				
-			_gridViewModel.SwapCellsViews(_cellToMove, targetCellPosition);
+			_gridViewModel.SwapCellsViews(cellToMove, targetCellPosition);
 		}
 		
 		private bool IsValidMovement(Vector2Int cellToMove, Vector2Int moveDirection)

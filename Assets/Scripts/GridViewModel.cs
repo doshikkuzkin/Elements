@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace DefaultNamespace
 {
@@ -112,6 +115,20 @@ namespace DefaultNamespace
 					_blockViews[secondCellPosition.x][secondCellPosition.y]) =
 				(_blockViews[secondCellPosition.x][secondCellPosition.y],
 					_blockViews[firstCellPosition.x][firstCellPosition.y]);
+		}
+
+		public void DestroyCellsViews(List<CellModel> cellsToDestroy)
+		{
+			foreach (var cell in cellsToDestroy)
+			{
+				if (!TryGetBlockView(cell.Position, out var cellView))
+				{
+					continue;
+				}
+				
+				Object.Destroy(cellView.gameObject);
+				_blockViews[cell.Position.x][cell.Position.y] = null;
+			}
 		}
 
 		private Vector3 GetScaleFactor()
