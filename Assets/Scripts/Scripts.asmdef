@@ -4,7 +4,8 @@
     "references": [
         "UniTask",
         "Zenject",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "UniTask.DOTween"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

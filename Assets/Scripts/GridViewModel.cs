@@ -117,17 +117,17 @@ namespace DefaultNamespace
 					_blockViews[firstCellPosition.x][firstCellPosition.y]);
 		}
 
-		public void DestroyCellsViews(List<CellModel> cellsToDestroy)
+		public void DestroyCellsViews(IEnumerable<Vector2Int> cellsToDestroy)
 		{
 			foreach (var cell in cellsToDestroy)
 			{
-				if (!TryGetBlockView(cell.Position, out var cellView))
+				if (!TryGetBlockView(cell, out var cellView))
 				{
 					continue;
 				}
 				
-				Object.Destroy(cellView.gameObject);
-				_blockViews[cell.Position.x][cell.Position.y] = null;
+				cellView.gameObject.SetActive(false);
+				_blockViews[cell.x][cell.y] = null;
 			}
 		}
 

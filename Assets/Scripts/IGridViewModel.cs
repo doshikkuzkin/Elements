@@ -22,6 +22,6 @@ namespace DefaultNamespace
 		bool IsEmptyCell(Vector2Int cellPosition);
 		void SwapCells(Vector2Int firstCellPosition, Vector2Int secondCellPosition);
 		void SwapCellsViews(Vector2Int firstCellPosition, Vector2Int secondCellPosition);
-		void DestroyCellsViews(List<CellModel> cellsToDestroy);
+		void DestroyCellsViews(IEnumerable<Vector2Int> cellsToDestroy);
 	}
 }

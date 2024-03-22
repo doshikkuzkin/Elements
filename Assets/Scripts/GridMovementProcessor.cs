@@ -73,7 +73,7 @@ namespace DefaultNamespace
 			
 			var blockUnderSwipe = hit.collider?.GetComponent<BlockView>();
 			
-			if(blockUnderSwipe != null)
+			if(blockUnderSwipe != null && blockUnderSwipe.IsAllowedToMove)
 			{
 				_commandsProcessor.AddCommand(new MoveBlockCommand(blockUnderSwipe.CellModel.Position, moveDirection, _gridSpawner.GridViewModel));
 			}

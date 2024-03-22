@@ -1,11 +1,15 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace DefaultNamespace
 {
 	public class MoveBlockCommand : ICommand
 	{
+		private static bool IsAnimationInProcess = false;
+		
 		private const int CellsInRowToDestroy = 3;
 		
 		private readonly Vector2Int _cellToMove;
@@ -28,37 +32,166 @@ namespace DefaultNamespace
 			
 			var targetCellPosition = _cellToMove + _moveDirection;
 				
-			MoveBlock(targetCellPosition);
-				
-			MoveCellsViews(_cellToMove, targetCellPosition, _moveDirection);
+			_gridViewModel.SwapCells(_cellToMove, targetCellPosition);
 
-			while (TryNormalize())
+			var blockMoveAnimationStep = GetBlockMoveAnimationStep(_cellToMove, targetCellPosition, _moveDirection);
+			var normalizeAnimationSteps = new List<NormalizeGridAnimationStep>();
+
+			while (TryNormalize(out var moveAnimationSteps, out var blocksDestroyAnimationStep))
 			{
-				continue;
+				normalizeAnimationSteps.Add(new NormalizeGridAnimationStep(moveAnimationSteps, blocksDestroyAnimationStep));
 			}
+			
+			PlayAnimationSequence(blockMoveAnimationStep, normalizeAnimationSteps.ToArray()).Forget();
 		}
 
-		private bool TryNormalize()
+		private async UniTaskVoid PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep, NormalizeGridAnimationStep[] normalizeAnimationSteps)
 		{
+			var disabledBlocks = DisableMovingBlocks(blockMoveAnimationStep, normalizeAnimationSteps);
+			
+			await PlaySwapCellsAnimation(blockMoveAnimationStep);
+			
+			await UniTask.WaitUntil(() => IsAnimationInProcess == false);
+			
+			IsAnimationInProcess = true;
+
+			foreach (var normalizeAnimationStep in normalizeAnimationSteps)
+			{
+				if (normalizeAnimationStep.MoveAnimationSteps != null)
+				{
+					var moveAnimationsList = normalizeAnimationStep.MoveAnimationSteps.Select(PlaySwapCellsAnimation);
+
+					await UniTask.WhenAll(moveAnimationsList);
+				}
+
+				var blocksToDestroyPositions =
+					normalizeAnimationStep.BlocksDestroyAnimationStep.BlocksToDestroyPositions?.ToArray();
+				
+				if (blocksToDestroyPositions != null)
+				{
+					await blocksToDestroyPositions
+						.Select(cellPosition =>
+						{
+							_gridViewModel.TryGetBlockView(cellPosition, out var blockView);
+
+							return blockView.DestroyBlock();
+						});
+					
+					_gridViewModel.DestroyCellsViews(blocksToDestroyPositions);
+				}
+			}
+
+			foreach (var disabledBlock in disabledBlocks)
+			{
+				disabledBlock.SetIsAllowedToMove(true);
+			}
+
+			IsAnimationInProcess = false;
+		}
+		
+		private List<BlockView> DisableMovingBlocks(BlockMoveAnimationStep blockMoveAnimationStep, IEnumerable<NormalizeGridAnimationStep> normalizeAnimationSteps)
+		{
+			var animatedCells = new HashSet<Vector2Int>();
+
+			foreach (var blockMoveInfo in blockMoveAnimationStep.BlockMoveInfo)
+			{
+				animatedCells.Add(blockMoveInfo.StartBlockPosition);
+			}
+
+			foreach (var normalizeAnimationStep in normalizeAnimationSteps)
+			{
+				if (normalizeAnimationStep.MoveAnimationSteps != null)
+				{
+					foreach (var moveAnimationStep in normalizeAnimationStep.MoveAnimationSteps)
+					{
+						foreach (var blockMoveInfo in moveAnimationStep.BlockMoveInfo)
+						{
+							animatedCells.Add(blockMoveInfo.StartBlockPosition);
+						}
+					}
+				}
+
+				var cellsToDestroy = normalizeAnimationStep.BlocksDestroyAnimationStep.BlocksToDestroyPositions;
+				
+				if (cellsToDestroy != null)
+				{
+					foreach (var cell in cellsToDestroy)
+					{
+						animatedCells.Add(cell);
+					}
+				}
+			}
+
+			var disabledBlocks = new List<BlockView>();
+
+			foreach (var cell in animatedCells)
+			{
+				if (_gridViewModel.TryGetBlockView(cell, out var blockView))
+				{
+					blockView.SetIsAllowedToMove(false);
+					disabledBlocks.Add(blockView);
+				}
+			}
+
+			return disabledBlocks;
+		}
+
+		private async UniTask PlaySwapCellsAnimation(BlockMoveAnimationStep blockMoveAnimationStep)
+		{
+			var blockViews = blockMoveAnimationStep.BlockMoveInfo
+				.Select(blockMoveInfo => _gridViewModel.TryGetBlockView(blockMoveInfo.StartBlockPosition, out var blockView)
+				? blockView : null).ToArray();
+			
+			var firstCellToSwap = blockMoveAnimationStep.BlockMoveInfo[0].StartBlockPosition;
+			var secondCellToSwap = firstCellToSwap + blockMoveAnimationStep.BlockMoveInfo[0].Direction;
+			
+			_gridViewModel.SwapCellsViews(firstCellToSwap, secondCellToSwap);
+			
+			await UniTask.WhenAll(blockMoveAnimationStep.BlockMoveInfo.Select((blockMoveInfo, index) =>
+			{
+				if (blockViews[index] == null)
+				{
+					return UniTask.CompletedTask;
+				}
+				
+				var newPosition = blockViews[index].transform.localPosition + new Vector3(
+					blockMoveInfo.Direction.x * _gridViewModel.CellSize, blockMoveInfo.Direction.y * _gridViewModel.CellSize,
+					0);
+
+				return blockViews[index].MoveBlock(newPosition);
+			}));
+		}
+
+		private bool TryNormalize(out IEnumerable<BlockMoveAnimationStep> moveAnimationSteps, out BlocksDestroyAnimationStep blocksDestroyAnimationStep)
+		{
+			moveAnimationSteps = null;
+			blocksDestroyAnimationStep = default;
+			
+			var isNormalized = false;
+			
 			if (TryGetColumnsToMove(out var columnsToMove))
 			{
-				MoveColumns(columnsToMove);
+				moveAnimationSteps = MoveColumns(columnsToMove);
 				
-				return true;
+				isNormalized = true;
 			}
 
 			if (TryGetCellsToDestroy(out var cellsToDestroy))
 			{
+				blocksDestroyAnimationStep = new BlocksDestroyAnimationStep(cellsToDestroy.Select(cell => cell.Position));
+				
 				DestroyCells(cellsToDestroy);
 				
-				return true;
+				isNormalized = true;
 			}
 
-			return false;
+			return isNormalized;
 		}
 
-		private void MoveColumns(List<ColumnModel> columnsToMove)
+		private IEnumerable<BlockMoveAnimationStep> MoveColumns(List<ColumnModel> columnsToMove)
 		{
+			var blockMoveAnimationSteps = new List<BlockMoveAnimationStep>();
+			
 			foreach (var column in columnsToMove)
 			{
 				for (int i = 1; i < column.Cells.Length; i++)
@@ -75,9 +208,11 @@ namespace DefaultNamespace
 					
 					_gridViewModel.SwapCells(cellToMove, firstEmptyCellPosition);
 					
-					MoveCellsViews(cellToMove, firstEmptyCellPosition, Vector2Int.down);
+					blockMoveAnimationSteps.Add(GetBlockMoveAnimationStep(cellToMove, firstEmptyCellPosition, Vector2Int.down));
 				}
 			}
+
+			return blockMoveAnimationSteps;
 		}
 		
 		private void DestroyCells(List<CellModel> cellsToDestroy)
@@ -86,8 +221,6 @@ namespace DefaultNamespace
 			{
 				cell.SetBlockType(BlockType.None);
 			}
-
-			DestroyCellsViews(cellsToDestroy);
 		}
 
 		private bool TryGetColumnsToMove(out List<ColumnModel> columnsToMove)
@@ -167,7 +300,7 @@ namespace DefaultNamespace
 				{
 					cellsToDestroy.AddRange(cellsGroup);
 					
-					break;
+					continue;
 				}
 				
 				var verticalGroup = cellsGroup.OrderBy(cell => cell.Column).ThenBy(cell => cell.Row).ToArray();
@@ -243,33 +376,30 @@ namespace DefaultNamespace
 			GetConnectedCells(cellToCheckPosition, targetBlockType, targetList);
 		}
 
-		private void MoveBlock(Vector2Int targetCellPosition)
-		{
-			_gridViewModel.SwapCells(_cellToMove, targetCellPosition);
-		}
-
-		private void DestroyCellsViews(List<CellModel> cellsToDestroy)
-		{
-			_gridViewModel.DestroyCellsViews(cellsToDestroy);
-		}
-
-		private void MoveCellsViews(Vector2Int cellToMove, Vector2Int targetCellPosition, Vector2Int moveDirection)
+		private BlockMoveAnimationStep GetBlockMoveAnimationStep(Vector2Int cellToMove, Vector2Int targetCellPosition, Vector2Int moveDirection)
 		{
 			_gridViewModel.TryGetBlockView(cellToMove, out var blockToMove);
 			_gridViewModel.TryGetBlockView(targetCellPosition, out var blockToSwapWith);
-				
-			var startBlockPosition = _gridViewModel.GetCellPositionLocal(blockToMove.CellModel.Position.x, blockToMove.CellModel.Position.y);
-				
-			blockToMove.MoveBlock(startBlockPosition, moveDirection, _gridViewModel.CellSize);
 
-			if (blockToSwapWith != null)
+			var cellToSwapWith = _gridViewModel.GridModel.Grid[targetCellPosition.x].Cells[targetCellPosition.y];
+			
+			var distanceBetweenCells = new Vector2Int(Math.Abs(targetCellPosition.x - cellToMove.x),
+				Math.Abs(targetCellPosition.y - cellToMove.y));
+			distanceBetweenCells *= moveDirection;
+
+			if (cellToSwapWith.BlockType != BlockType.None)
 			{
-				var startSwapBlockPosition = _gridViewModel.GetCellPositionLocal(blockToSwapWith.CellModel.Position.x, blockToSwapWith.CellModel.Position.y);
-					
-				blockToSwapWith.MoveBlock(startSwapBlockPosition, moveDirection * -1, _gridViewModel.CellSize);
+				var blockToSwapWithDirection = distanceBetweenCells * -1;
+
+				return new BlockMoveAnimationStep(
+					new BlockMoveInfo(blockToMove, cellToMove, distanceBetweenCells),
+					new BlockMoveInfo(blockToSwapWith, cellToSwapWith.Position, blockToSwapWithDirection)
+				);
 			}
-				
-			_gridViewModel.SwapCellsViews(cellToMove, targetCellPosition);
+			
+			return new BlockMoveAnimationStep(
+				new BlockMoveInfo(blockToMove, cellToMove, distanceBetweenCells)
+			);
 		}
 		
 		private bool IsValidMovement(Vector2Int cellToMove, Vector2Int moveDirection)
@@ -292,6 +422,11 @@ namespace DefaultNamespace
 			if (moveDirection == Vector2Int.up)
 			{
 				return !_gridViewModel.IsEmptyCell(newBlockPosition);
+			}
+			
+			if (_gridViewModel.TryGetBlockView(newBlockPosition, out var blockView))
+			{
+				return blockView.IsAllowedToMove;
 			}
 
 			return true;
