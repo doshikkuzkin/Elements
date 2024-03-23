@@ -20,7 +20,7 @@ namespace DefaultNamespace
 
 		public bool HasAnimationsInProcess => AnimationsInProcessCount > 0;
 
-		public async UniTaskVoid PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep,
+		public async UniTask PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep,
 			NormalizeGridAnimationStep[] normalizeAnimationSteps, CancellationToken cancellationToken)
 		{
 			AnimationsInProcessCount++;

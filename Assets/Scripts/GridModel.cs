@@ -11,6 +11,10 @@ namespace DefaultNamespace
 		
 		private int ColumnsCount => Grid?.Length ?? 0;
 		private int RowsCount => ColumnsCount > 0 ? Grid[0]?.Cells?.Length ?? 0 : 0;
+
+		public GridModel()
+		{
+		}
 		
 		public GridModel(ColumnModel[] grid)
 		{

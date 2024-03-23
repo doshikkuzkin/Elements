@@ -7,7 +7,7 @@ namespace DefaultNamespace
 	{
 		bool HasAnimationsInProcess { get; }
 
-		UniTaskVoid PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep,
+		UniTask PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep,
 			NormalizeGridAnimationStep[] normalizeAnimationSteps, CancellationToken cancellationToken);
 	}
 }

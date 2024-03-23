@@ -9,11 +9,12 @@ namespace DefaultNamespace
 		private readonly LevelControllerFactory _levelControllerFactory;
 		private readonly IPlayfieldCanvasViewModel _playfieldCanvasViewModel;
 		private readonly ILevelWinObserver _levelWinObserver;
+		private readonly IGameSettingsConfigProvider _gameSettingsConfigProvider;
+		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
 
 		private ILevelController _levelController;
 		private CancellationTokenSource _levelCancellationSource;
 		private CancellationToken _gameCancellationToken;
-		private GameSettingsConfig _gameSettingsConfig;
 		private int _levelIndex;
 		
 		private bool _isDisposed;
@@ -21,17 +22,21 @@ namespace DefaultNamespace
 		public GameRunnerController(
 			LevelControllerFactory levelControllerFactory,
 			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
-			ILevelWinObserver levelWinObserver)
+			ILevelWinObserver levelWinObserver,
+			IGameSettingsConfigProvider gameSettingsConfigProvider,
+			ISaveRestoreDataObserver saveRestoreDataObserver)
 		{
 			_levelControllerFactory = levelControllerFactory;
 			_playfieldCanvasViewModel = playfieldCanvasViewModel;
 			_levelWinObserver = levelWinObserver;
+			_gameSettingsConfigProvider = gameSettingsConfigProvider;
+			_saveRestoreDataObserver = saveRestoreDataObserver;
 		}
 		
-		public async UniTask Execute(GameSettingsConfig gameSettingsConfig, CancellationToken cancellationToken)
+		public async UniTask Execute(CancellationToken cancellationToken)
 		{
-			_gameSettingsConfig = gameSettingsConfig;
 			_gameCancellationToken = cancellationToken;
+			
 			_levelController = _levelControllerFactory.Create();
 			
 			RecreateLevelCancellationSource(cancellationToken);
@@ -48,8 +53,6 @@ namespace DefaultNamespace
 		{
 			_levelIndex = levelIndex;
 			
-			PlayerPrefs.SetInt("LevelIndex", _levelIndex);
-			
 			await _levelController.Initialize(levelIndex + 1, cancellationToken);
 			await _levelController.Execute(cancellationToken);
 		}
@@ -63,6 +66,7 @@ namespace DefaultNamespace
 
 			_isDisposed = true;
 			_playfieldCanvasViewModel.NextClicked -= OpenNextLevel;
+			_levelWinObserver.LevelWin -= OpenNextLevel;
 			
 			_levelCancellationSource?.Cancel();
 			_levelCancellationSource?.Dispose();
@@ -76,10 +80,15 @@ namespace DefaultNamespace
 			_levelController.Dispose();
 
 			_levelController = _levelControllerFactory.Create();
-			
-			var nextLevelIndex = _levelIndex + 1 >= _gameSettingsConfig.LevelsCount ? 0 : _levelIndex + 1;
 
-			RunGame(nextLevelIndex, _levelCancellationSource.Token).Forget();
+			var nextLevelIndex = _levelIndex + 1;
+			var levelToLoad = nextLevelIndex >= _gameSettingsConfigProvider.GameSettingsConfig.LevelsCount ? 0 : nextLevelIndex;
+
+			PlayerPrefs.SetInt("LevelIndex", levelToLoad);
+			
+			_saveRestoreDataObserver.RequestClear();
+			
+			RunGame(levelToLoad, _levelCancellationSource.Token).Forget();
 		}
 
 		private void RecreateLevelCancellationSource(CancellationToken cancellationToken)

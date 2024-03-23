@@ -20,6 +20,7 @@ namespace DefaultNamespace
 
 		public CellModel CellModel { get; private set; }
 		public bool IsAllowedToMove { get; private set; } = true;
+		public BlockType BlockType { get; private set; }
 
 		public void SetCellModel(CellModel cellModel)
 		{
@@ -29,6 +30,11 @@ namespace DefaultNamespace
 		public void SetIsAllowedToMove(bool isAllowedToMove)
 		{
 			IsAllowedToMove = isAllowedToMove;
+		}
+
+		public void SetBlockType(BlockType blockType)
+		{
+			BlockType = blockType;
 		}
 		
 		public async UniTask MoveBlock(Vector3 newPosition, CancellationToken cancellationToken)

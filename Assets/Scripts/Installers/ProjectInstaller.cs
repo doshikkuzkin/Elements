@@ -1,9 +1,12 @@
+using UnityEngine;
 using Zenject;
 
 namespace DefaultNamespace.Installers
 {
 	public class ProjectInstaller : MonoInstaller
 	{
+		[SerializeField] private GameSettingsConfig _gameSettingsConfig;
+		
 		public override void InstallBindings()
 		{
 			Container.BindInterfacesTo<CommandsProcessor>().AsSingle();
@@ -17,8 +20,13 @@ namespace DefaultNamespace.Installers
 			Container.BindInterfacesTo<PlayfieldCanvasViewModel>().AsSingle();
 			Container.BindInterfacesTo<AnimationsProcessor>().AsSingle();
 			Container.BindInterfacesTo<LevelWinObserver>().AsSingle();
+			Container.BindInterfacesTo<SaveRestoreDataProcessor>().AsSingle();
+			Container.BindInterfacesTo<SaveRestoreDataObserver>().AsSingle();
 
 			Container.BindFactory<LevelController, LevelControllerFactory>().AsSingle();
+
+			Container.Bind<IGameSettingsConfigProvider>().To<GameSettingsConfigProvider>()
+				.FromInstance(new GameSettingsConfigProvider(_gameSettingsConfig)).AsSingle();
 		}
 	}
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace DefaultNamespace
@@ -15,13 +16,15 @@ namespace DefaultNamespace
 		
 		private readonly IGridViewModel _gridViewModel;
 		private readonly IAnimationsProcessor _animationsProcessor;
+		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
 
-		public MoveBlockCommand(Vector2Int cellToMove, Vector2Int moveDirection, IGridViewModel gridViewModel, IAnimationsProcessor animationsProcessor)
+		public MoveBlockCommand(Vector2Int cellToMove, Vector2Int moveDirection, IGridViewModel gridViewModel, IAnimationsProcessor animationsProcessor, ISaveRestoreDataObserver saveRestoreDataObserver)
 		{
 			_cellToMove = cellToMove;
 			_moveDirection = moveDirection;
 			_gridViewModel = gridViewModel;
 			_animationsProcessor = animationsProcessor;
+			_saveRestoreDataObserver = saveRestoreDataObserver;
 		}
 
 		public void Execute(CancellationToken cancellationToken)
@@ -43,7 +46,9 @@ namespace DefaultNamespace
 				normalizeAnimationSteps.Add(new NormalizeGridAnimationStep(moveAnimationSteps, blocksDestroyAnimationStep));
 			}
 			
-			_animationsProcessor.PlayAnimationSequence(blockMoveAnimationStep, normalizeAnimationSteps.ToArray(), cancellationToken);
+			_saveRestoreDataObserver.RequestSave();
+			
+			_animationsProcessor.PlayAnimationSequence(blockMoveAnimationStep, normalizeAnimationSteps.ToArray(), cancellationToken).Forget();
 		}
 
 		private bool TryNormalize(out IEnumerable<BlockMoveAnimationStep> moveAnimationSteps, out BlocksDestroyAnimationStep blocksDestroyAnimationStep)

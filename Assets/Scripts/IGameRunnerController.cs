@@ -6,6 +6,6 @@ namespace DefaultNamespace
 {
 	public interface IGameRunnerController : IDisposable
 	{
-		UniTask Execute(GameSettingsConfig gameSettingsConfig, CancellationToken cancellationToken);
+		UniTask Execute(CancellationToken cancellationToken);
 	}
 }

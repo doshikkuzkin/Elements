@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -9,14 +12,13 @@ namespace DefaultNamespace
 	{
 		private readonly IGridViewModel _gridViewModel;
 		private readonly IAddressableAssetsLoader _addressableAssetsLoader;
+		private readonly Dictionary<BlockType, PrefabsPool<BlockView>> _blocksPoolsDictionary = new();
 		
 		private GameObject _gridPrefab;
-		private GameObject _firePrefab;
-		private GameObject _waterPrefab;
 		private GameObject _backgroundPrefab;
 		
-		private GridView _gridView;
 		private GridModel _gridModel;
+		private GridView _gridView;
 		private GameObject _backgroundView;
 		
 		private bool _isDisposed;
@@ -35,7 +37,7 @@ namespace DefaultNamespace
 			}
 
 			_isDisposed = true;
-			DestroyBlocks();
+			ReturnBlocksToPools();
 			
 			Object.Destroy(_gridView.gameObject);
 			Object.Destroy(_backgroundView.gameObject);
@@ -45,44 +47,57 @@ namespace DefaultNamespace
 
 		public async UniTask LoadPlayfield(LevelConfig levelConfig, CancellationToken cancellationToken)
 		{
-			_firePrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Fire", cancellationToken);
-			_waterPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Water", cancellationToken);
+			var levelRestoreData = PlayerPrefs.GetString("LevelState", null);
+
+			var initialGridState = string.IsNullOrEmpty(levelRestoreData)
+				? (GridModel) levelConfig.GridModel.Clone()
+				: JsonConvert.DeserializeObject<GridModel>(levelRestoreData);
+			
+			
 			_gridPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Grid", cancellationToken);
 			_backgroundPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Background", cancellationToken);
 
 			_backgroundView = Object.Instantiate(_backgroundPrefab);
 			_gridView = Object.Instantiate(_gridPrefab).GetComponent<GridView>();
+
+			await InitializePools(cancellationToken);
 			
-			SpawnGrid(levelConfig);
+			SpawnGrid(initialGridState);
+		}
+
+		private async UniTask InitializePools(CancellationToken cancellationToken)
+		{
+			var firePrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Fire", cancellationToken);
+			var waterPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Water", cancellationToken);
+			
+			_blocksPoolsDictionary.Add(BlockType.Fire, new PrefabsPool<BlockView>(firePrefab));
+			_blocksPoolsDictionary.Add(BlockType.Water, new PrefabsPool<BlockView>(waterPrefab));
 		}
 		
 		public void ResetPlayfield(LevelConfig levelConfig)
 		{
-			DestroyBlocks();
+			ReturnBlocksToPools();
 			_gridViewModel.ResetScaleFactor();
 			
-			SpawnGrid(levelConfig);
+			SpawnGrid((GridModel) levelConfig.GridModel.Clone());
 		}
 
-		private void DestroyBlocks()
+		private void ReturnBlocksToPools()
 		{
 			foreach (var blockViews in _gridViewModel.BlockViews)
 			{
-				foreach (var blockView in blockViews)
-				{
-					if (blockView == null)
-					{
-						continue;
-					}
+				var views = blockViews.Where(blockView => blockView != null);
 					
-					Object.Destroy(blockView.gameObject);
+				foreach (var view in views)
+				{
+					_blocksPoolsDictionary[view.BlockType].Return(view);
 				}
 			}
 		}
 
-		private void SpawnGrid(LevelConfig levelConfig)
+		private void SpawnGrid(GridModel gridModel)
 		{
-			_gridModel = (GridModel) levelConfig.GridModel.Clone();
+			_gridModel = gridModel;
 			
 			_gridViewModel.InitGrid(_gridModel, _gridView);
 			
@@ -96,11 +111,11 @@ namespace DefaultNamespace
 				{
 					var cell = _gridModel.Grid[x].Cells[y];
 					
-					if (TrySpawnPrefab(cell.BlockType, _gridViewModel.GetCellPosition(x, y), out var spawnedObject))
+					if (TrySpawnPrefab(cell.BlockType, _gridViewModel.GetCellPosition(x, y), out var blockView))
 					{
-						var blockView = spawnedObject.GetComponent<BlockView>();
 						blockView.SetCellModel(cell);
-						
+						blockView.SetBlockType(cell.BlockType);
+						blockView.SetIsAllowedToMove(true);
 						blocksViews[x][y] = blockView;
 					}
 				}
@@ -110,23 +125,18 @@ namespace DefaultNamespace
 			_gridViewModel.ApplyScaleFactor();
 		}
 		
-		private bool TrySpawnPrefab(BlockType blockType, Vector3 position, out GameObject spawnedObject)
+		private bool TrySpawnPrefab(BlockType blockType, Vector3 position, out BlockView blockView)
 		{
-			spawnedObject = null;
-			
-			switch (blockType)
+			blockView = null;
+
+			if (!_blocksPoolsDictionary.ContainsKey(blockType))
 			{
-				case BlockType.Fire:
-					spawnedObject = Object.Instantiate(_firePrefab, position, Quaternion.identity, _gridViewModel.GridParent);
-					
-					return true;
-				case BlockType.Water:
-					spawnedObject = Object.Instantiate(_waterPrefab, position, Quaternion.identity, _gridViewModel.GridParent);
-					
-					return true;
-				default:
-					return false;
+				return false;
 			}
+			
+			blockView = _blocksPoolsDictionary[blockType].Get(position, _gridView.GridParent);
+
+			return true;
 		}
 	}
 }
