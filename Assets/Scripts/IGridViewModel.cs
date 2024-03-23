@@ -23,5 +23,6 @@ namespace DefaultNamespace
 		void SwapCells(Vector2Int firstCellPosition, Vector2Int secondCellPosition);
 		void SwapCellsViews(Vector2Int firstCellPosition, Vector2Int secondCellPosition);
 		void DestroyCellsViews(IEnumerable<Vector2Int> cellsToDestroy);
+		bool AreAllBlocksDestroyed();
 	}
 }

@@ -15,6 +15,9 @@ namespace DefaultNamespace
 		private readonly IGridMovementProcessor _gridMovementProcessor;
 		private readonly IAddressableAssetsLoader _addressableAssetsLoader;
 		private readonly IPlayfieldCanvasViewModel _playfieldCanvasViewModel;
+		private readonly IAnimationsProcessor _animationsProcessor;
+		private readonly ILevelWinObserver _levelWinObserver;
+		private readonly IGridViewModel _gridViewModel;
 		
 		private int _levelIndex;
 		private LevelConfig _levelConfig;
@@ -29,13 +32,19 @@ namespace DefaultNamespace
 			ICommandsProcessor commandsProcessor,
 			IGridMovementProcessor gridMovementProcessor,
 			IAddressableAssetsLoader addressableAssetsLoader,
-			IPlayfieldCanvasViewModel playfieldCanvasViewModel)
+			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
+			IAnimationsProcessor animationsProcessor,
+			ILevelWinObserver levelWinObserver,
+			IGridViewModel gridViewModel)
 		{
 			_playfieldLoader = playfieldLoader;
 			_commandsProcessor = commandsProcessor;
 			_gridMovementProcessor = gridMovementProcessor;
 			_addressableAssetsLoader = addressableAssetsLoader;
 			_playfieldCanvasViewModel = playfieldCanvasViewModel;
+			_animationsProcessor = animationsProcessor;
+			_levelWinObserver = levelWinObserver;
+			_gridViewModel = gridViewModel;
 		}
 
 		public UniTask Initialize(int levelIndex, CancellationToken cancellationToken)
@@ -66,8 +75,12 @@ namespace DefaultNamespace
 			return UniTaskAsyncEnumerable.EveryUpdate().ForEachAsync(_ =>
 			{
 				_gridMovementProcessor.ProcessUserInput();
-				
 				_commandsProcessor.ProcessCommands(cancellationToken);
+
+				if (!_animationsProcessor.HasAnimationsInProcess && _gridViewModel.AreAllBlocksDestroyed())
+				{
+					_levelWinObserver.RequestLevelWin();
+				}
 			}, cancellationToken);
 		}
 		

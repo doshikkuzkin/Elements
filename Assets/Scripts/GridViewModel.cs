@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace DefaultNamespace
@@ -132,6 +133,16 @@ namespace DefaultNamespace
 				cellView.gameObject.SetActive(false);
 				_blockViews[cell.x][cell.y] = null;
 			}
+		}
+
+		public bool AreAllBlocksDestroyed()
+		{
+			if (_gridModel.Grid.SelectMany(column => column.Cells).Any(cell => cell.BlockType != BlockType.None))
+			{
+				return false;
+			}
+			
+			return true;
 		}
 
 		private Vector3 GetScaleFactor()

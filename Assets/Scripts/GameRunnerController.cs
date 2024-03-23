@@ -8,6 +8,7 @@ namespace DefaultNamespace
 	{
 		private readonly LevelControllerFactory _levelControllerFactory;
 		private readonly IPlayfieldCanvasViewModel _playfieldCanvasViewModel;
+		private readonly ILevelWinObserver _levelWinObserver;
 
 		private ILevelController _levelController;
 		private CancellationTokenSource _levelCancellationSource;
@@ -19,10 +20,12 @@ namespace DefaultNamespace
 
 		public GameRunnerController(
 			LevelControllerFactory levelControllerFactory,
-			IPlayfieldCanvasViewModel playfieldCanvasViewModel)
+			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
+			ILevelWinObserver levelWinObserver)
 		{
 			_levelControllerFactory = levelControllerFactory;
 			_playfieldCanvasViewModel = playfieldCanvasViewModel;
+			_levelWinObserver = levelWinObserver;
 		}
 		
 		public async UniTask Execute(GameSettingsConfig gameSettingsConfig, CancellationToken cancellationToken)
@@ -37,7 +40,8 @@ namespace DefaultNamespace
 			
 			await RunGame(savedLevelIndex, _levelCancellationSource.Token);
 			
-			_playfieldCanvasViewModel.NextClicked += OnNextClicked;
+			_playfieldCanvasViewModel.NextClicked += OpenNextLevel;
+			_levelWinObserver.LevelWin += OpenNextLevel;
 		}
 
 		private async UniTask RunGame(int levelIndex, CancellationToken cancellationToken)
@@ -58,7 +62,7 @@ namespace DefaultNamespace
 			}
 
 			_isDisposed = true;
-			_playfieldCanvasViewModel.NextClicked -= OnNextClicked;
+			_playfieldCanvasViewModel.NextClicked -= OpenNextLevel;
 			
 			_levelCancellationSource?.Cancel();
 			_levelCancellationSource?.Dispose();
@@ -66,7 +70,7 @@ namespace DefaultNamespace
 			_levelController?.Dispose();
 		}
 		
-		private void OnNextClicked()
+		private void OpenNextLevel()
 		{
 			RecreateLevelCancellationSource(_gameCancellationToken);
 			_levelController.Dispose();

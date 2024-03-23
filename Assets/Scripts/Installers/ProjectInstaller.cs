@@ -15,6 +15,8 @@ namespace DefaultNamespace.Installers
 			Container.BindInterfacesTo<GridMovementProcessor>().AsSingle();
 			Container.BindInterfacesTo<GameRunnerController>().AsTransient();
 			Container.BindInterfacesTo<PlayfieldCanvasViewModel>().AsSingle();
+			Container.BindInterfacesTo<AnimationsProcessor>().AsSingle();
+			Container.BindInterfacesTo<LevelWinObserver>().AsSingle();
 
 			Container.BindFactory<LevelController, LevelControllerFactory>().AsSingle();
 		}
