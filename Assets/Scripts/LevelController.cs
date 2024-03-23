@@ -18,6 +18,7 @@ namespace DefaultNamespace
 		private readonly IAnimationsProcessor _animationsProcessor;
 		private readonly ILevelWinObserver _levelWinObserver;
 		private readonly IGridViewModel _gridViewModel;
+		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
 		
 		private int _levelIndex;
 		private LevelConfig _levelConfig;
@@ -35,7 +36,8 @@ namespace DefaultNamespace
 			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
 			IAnimationsProcessor animationsProcessor,
 			ILevelWinObserver levelWinObserver,
-			IGridViewModel gridViewModel)
+			IGridViewModel gridViewModel,
+			ISaveRestoreDataObserver saveRestoreDataObserver)
 		{
 			_playfieldLoader = playfieldLoader;
 			_commandsProcessor = commandsProcessor;
@@ -45,6 +47,7 @@ namespace DefaultNamespace
 			_animationsProcessor = animationsProcessor;
 			_levelWinObserver = levelWinObserver;
 			_gridViewModel = gridViewModel;
+			_saveRestoreDataObserver = saveRestoreDataObserver;
 		}
 
 		public UniTask Initialize(int levelIndex, CancellationToken cancellationToken)
@@ -133,6 +136,8 @@ namespace DefaultNamespace
 		private void OnResetClicked()
 		{
 			RecreateUpdateToken(_gameCancellationToken);
+			
+			_saveRestoreDataObserver.RequestClear();
 			_playfieldLoader.ResetPlayfield(_levelConfig);
 			
 			UpdatePlayfieldState(_playfieldUpdateTokenSource.Token).Forget();

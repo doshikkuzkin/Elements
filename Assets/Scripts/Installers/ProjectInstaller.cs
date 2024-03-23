@@ -22,6 +22,7 @@ namespace DefaultNamespace.Installers
 			Container.BindInterfacesTo<LevelWinObserver>().AsSingle();
 			Container.BindInterfacesTo<SaveRestoreDataProcessor>().AsSingle();
 			Container.BindInterfacesTo<SaveRestoreDataObserver>().AsSingle();
+			Container.BindInterfacesTo<LevelIndexProvider>().AsSingle();
 
 			Container.BindFactory<LevelController, LevelControllerFactory>().AsSingle();
 

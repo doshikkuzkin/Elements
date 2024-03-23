@@ -9,11 +9,13 @@ namespace DefaultNamespace
 	{
 		private readonly IGridViewModel _gridViewModel;
 		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
+		private readonly ILevelIndexProvider _levelIndexProvider;
 
-		public SaveRestoreDataProcessor(IGridViewModel gridViewModel, ISaveRestoreDataObserver saveRestoreDataObserver)
+		public SaveRestoreDataProcessor(IGridViewModel gridViewModel, ISaveRestoreDataObserver saveRestoreDataObserver, ILevelIndexProvider levelIndexProvider)
 		{
 			_gridViewModel = gridViewModel;
 			_saveRestoreDataObserver = saveRestoreDataObserver;
+			_levelIndexProvider = levelIndexProvider;
 		}
 
 
@@ -31,16 +33,31 @@ namespace DefaultNamespace
 		
 		private void OnSaveRequested()
 		{
-			var currentGridState = _gridViewModel.GridModel;
-			var currentGridStateJson = JsonConvert.SerializeObject(currentGridState);
+			int levelIndexToSave = 0;
+			string gridStateToSave;
+
+			if (_gridViewModel.AreAllBlocksDestroyed())
+			{
+				levelIndexToSave = _levelIndexProvider.NextLevelIndex;
+				gridStateToSave = string.Empty;
+			}
+			else
+			{
+				levelIndexToSave = _levelIndexProvider.CurrentLevelIndex;
+				gridStateToSave = JsonConvert.SerializeObject(_gridViewModel.GridModel);
+			}
 			
-			PlayerPrefs.SetString("LevelState", currentGridStateJson);
+			PlayerPrefs.SetInt("LevelIndex", levelIndexToSave);
+			PlayerPrefs.SetString("LevelState", gridStateToSave);
+			
 			PlayerPrefs.Save();
 		}
 		
 		private void OnClearRequested()
 		{
+			PlayerPrefs.SetInt("LevelIndex", _levelIndexProvider.CurrentLevelIndex);
 			PlayerPrefs.DeleteKey("LevelState");
+			
 			PlayerPrefs.Save();
 		}
 	}

@@ -116,6 +116,7 @@ namespace DefaultNamespace
 						blockView.SetCellModel(cell);
 						blockView.SetBlockType(cell.BlockType);
 						blockView.SetIsAllowedToMove(true);
+						
 						blocksViews[x][y] = blockView;
 					}
 				}

@@ -1,6 +1,5 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 
 namespace DefaultNamespace
 {
@@ -9,13 +8,12 @@ namespace DefaultNamespace
 		private readonly LevelControllerFactory _levelControllerFactory;
 		private readonly IPlayfieldCanvasViewModel _playfieldCanvasViewModel;
 		private readonly ILevelWinObserver _levelWinObserver;
-		private readonly IGameSettingsConfigProvider _gameSettingsConfigProvider;
 		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
+		private readonly ILevelIndexProvider _levelIndexProvider;
 
 		private ILevelController _levelController;
 		private CancellationTokenSource _levelCancellationSource;
 		private CancellationToken _gameCancellationToken;
-		private int _levelIndex;
 		
 		private bool _isDisposed;
 
@@ -23,14 +21,14 @@ namespace DefaultNamespace
 			LevelControllerFactory levelControllerFactory,
 			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
 			ILevelWinObserver levelWinObserver,
-			IGameSettingsConfigProvider gameSettingsConfigProvider,
-			ISaveRestoreDataObserver saveRestoreDataObserver)
+			ISaveRestoreDataObserver saveRestoreDataObserver,
+			ILevelIndexProvider levelIndexProvider)
 		{
 			_levelControllerFactory = levelControllerFactory;
 			_playfieldCanvasViewModel = playfieldCanvasViewModel;
 			_levelWinObserver = levelWinObserver;
-			_gameSettingsConfigProvider = gameSettingsConfigProvider;
 			_saveRestoreDataObserver = saveRestoreDataObserver;
+			_levelIndexProvider = levelIndexProvider;
 		}
 		
 		public async UniTask Execute(CancellationToken cancellationToken)
@@ -41,9 +39,7 @@ namespace DefaultNamespace
 			
 			RecreateLevelCancellationSource(cancellationToken);
 			
-			var savedLevelIndex = PlayerPrefs.GetInt("LevelIndex", 0);
-			
-			await RunGame(savedLevelIndex, _levelCancellationSource.Token);
+			await RunGame(_levelIndexProvider.CurrentLevelIndex, _levelCancellationSource.Token);
 			
 			_playfieldCanvasViewModel.NextClicked += OpenNextLevel;
 			_levelWinObserver.LevelWin += OpenNextLevel;
@@ -51,8 +47,6 @@ namespace DefaultNamespace
 
 		private async UniTask RunGame(int levelIndex, CancellationToken cancellationToken)
 		{
-			_levelIndex = levelIndex;
-			
 			await _levelController.Initialize(levelIndex + 1, cancellationToken);
 			await _levelController.Execute(cancellationToken);
 		}
@@ -81,10 +75,8 @@ namespace DefaultNamespace
 
 			_levelController = _levelControllerFactory.Create();
 
-			var nextLevelIndex = _levelIndex + 1;
-			var levelToLoad = nextLevelIndex >= _gameSettingsConfigProvider.GameSettingsConfig.LevelsCount ? 0 : nextLevelIndex;
-
-			PlayerPrefs.SetInt("LevelIndex", levelToLoad);
+			var levelToLoad = _levelIndexProvider.NextLevelIndex;
+			_levelIndexProvider.IncrementLevelIndex();
 			
 			_saveRestoreDataObserver.RequestClear();
 			
