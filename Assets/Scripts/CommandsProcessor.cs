@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using UnityEngine;
+using System.Threading;
 
 namespace DefaultNamespace
 {
-	public class CommandsProcessor : MonoBehaviour
+	public class CommandsProcessor : ICommandsProcessor
 	{
 		private readonly Queue<ICommand> _commandsQueue = new ();
 		
@@ -12,18 +12,13 @@ namespace DefaultNamespace
 			_commandsQueue.Enqueue(command);
 		}
 
-		private void Update()
-		{
-			ProcessCommands();
-		}
-		
-		private void ProcessCommands()
+		public void ProcessCommands(CancellationToken cancellationToken)
 		{
 			while (_commandsQueue.Count > 0)
 			{
 				var command = _commandsQueue.Dequeue();
 				
-				command.Execute();
+				command.Execute(cancellationToken);
 			}
 		}
 	}

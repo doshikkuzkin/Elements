@@ -15,8 +15,8 @@ namespace DefaultNamespace
 		void InitBlocks(BlockView[][] blockViews);
 
 		void ApplyScaleFactor();
+		void ResetScaleFactor();
 		Vector3 GetCellPosition(int x, int y);
-		Vector3 GetCellPositionLocal(int x, int y);
 		bool TryGetBlockView(Vector2Int cellPosition, out BlockView blockView);
 		bool IsValidCellPosition(Vector2Int cellPosition);
 		bool IsEmptyCell(Vector2Int cellPosition);

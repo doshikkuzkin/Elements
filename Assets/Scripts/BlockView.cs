@@ -1,3 +1,4 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -30,17 +31,17 @@ namespace DefaultNamespace
 			IsAllowedToMove = isAllowedToMove;
 		}
 		
-		public async UniTask MoveBlock(Vector3 newPosition)
+		public async UniTask MoveBlock(Vector3 newPosition, CancellationToken cancellationToken)
 		{
-			await transform.DOLocalMove(newPosition, AnimationDuration).OnUpdate(UpdateSortingOrder).ToUniTask();
+			await transform.DOLocalMove(newPosition, AnimationDuration).OnUpdate(UpdateSortingOrder).WithCancellation(cancellationToken);
 		}
 
-		public UniTask DestroyBlock()
+		public UniTask DestroyBlock(CancellationToken cancellationToken)
 		{
 			_destroyCompletionSource = new UniTaskCompletionSource();
 			_animator.SetTrigger(DestroyAnimationTriggerName);
 
-			return _destroyCompletionSource.Task;
+			return _destroyCompletionSource.Task.AttachExternalCancellation(cancellationToken);
 		}
 		
 		private void UpdateSortingOrder()

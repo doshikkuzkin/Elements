@@ -1,20 +1,16 @@
 using UnityEngine;
+using Zenject;
 
 namespace DefaultNamespace
 {
-	public class GridMovementProcessor : MonoBehaviour
+	public class GridMovementProcessor : IGridMovementProcessor
 	{
-		[SerializeField] private CommandsProcessor _commandsProcessor;
-		[SerializeField] private GridSpawner _gridSpawner;
+		[Inject] private ICommandsProcessor _commandsProcessor;
+		[Inject] private IMoveBlockCommandFactory _moveBlockCommandFactory;
 		
 		private Vector2 _firstPressPosition;
 
-		private void Update()
-		{
-			Swipe();
-		}
-
-		private void Swipe()
+		public void ProcessUserInput()
 		{
 			if (Input.GetMouseButtonDown(0))
 			{
@@ -75,7 +71,7 @@ namespace DefaultNamespace
 			
 			if(blockUnderSwipe != null && blockUnderSwipe.IsAllowedToMove)
 			{
-				_commandsProcessor.AddCommand(new MoveBlockCommand(blockUnderSwipe.CellModel.Position, moveDirection, _gridSpawner.GridViewModel));
+				_commandsProcessor.AddCommand(_moveBlockCommandFactory.Create(blockUnderSwipe.CellModel.Position, moveDirection));
 			}
 		}
 	}

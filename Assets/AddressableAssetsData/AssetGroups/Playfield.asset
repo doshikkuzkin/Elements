@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Playfield
+  m_EditorClassIdentifier: 
+  m_GroupName: Playfield
+  m_Data:
+    m_SerializedData: []
+  m_GUID: d0ca708bd75b341f888bc0a945407800
+  m_SerializeEntries:
+  - m_GUID: e98b08e6a7cb04606b527566eaaa4ba8
+    m_Address: Fire
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: b2787b1b46bca4658845faa523657fc5
+    m_Address: Water
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 0783c5043e9824b73a9523597b14c374
+    m_Address: Background
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: c38a9a9189cfe467b8a0747adfb172be
+    m_Address: Grid
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: b9ad62ef562194063936851d370d004c
+    m_Address: PlayfieldCanvas
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 4df4c4b8679b54b3cb5c4c56eb59ef52, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: b82b69dcc1cf34934a5783aaf54954d2, type: 2}
+    - {fileID: 11400000, guid: 165eca47df7f54f87999c501e1e38159, type: 2}

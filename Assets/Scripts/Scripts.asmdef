@@ -5,7 +5,11 @@
         "UniTask",
         "Zenject",
         "Unity.TextMeshPro",
-        "UniTask.DOTween"
+        "UniTask.DOTween",
+        "Unity.Addressables",
+        "UniTask.Addressables",
+        "Unity.ResourceManager",
+        "UniTask.Linq"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

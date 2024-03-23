@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace DefaultNamespace
 		
 		private readonly Vector2Int _cellToMove;
 		private readonly Vector2Int _moveDirection;
+		
 		private readonly IGridViewModel _gridViewModel;
 
 		public MoveBlockCommand(Vector2Int cellToMove, Vector2Int moveDirection, IGridViewModel gridViewModel)
@@ -23,7 +25,7 @@ namespace DefaultNamespace
 			_gridViewModel = gridViewModel;
 		}
 
-		public void Execute()
+		public void Execute(CancellationToken cancellationToken)
 		{
 			if (!IsValidMovement(_cellToMove, _moveDirection))
 			{
@@ -42,51 +44,56 @@ namespace DefaultNamespace
 				normalizeAnimationSteps.Add(new NormalizeGridAnimationStep(moveAnimationSteps, blocksDestroyAnimationStep));
 			}
 			
-			PlayAnimationSequence(blockMoveAnimationStep, normalizeAnimationSteps.ToArray()).Forget();
+			PlayAnimationSequence(blockMoveAnimationStep, normalizeAnimationSteps.ToArray(), cancellationToken).Forget();
 		}
 
-		private async UniTaskVoid PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep, NormalizeGridAnimationStep[] normalizeAnimationSteps)
+		private async UniTaskVoid PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep, NormalizeGridAnimationStep[] normalizeAnimationSteps, CancellationToken cancellationToken)
 		{
 			var disabledBlocks = DisableMovingBlocks(blockMoveAnimationStep, normalizeAnimationSteps);
 			
-			await PlaySwapCellsAnimation(blockMoveAnimationStep);
+			await PlaySwapCellsAnimation(blockMoveAnimationStep, cancellationToken);
 			
-			await UniTask.WaitUntil(() => IsAnimationInProcess == false);
+			await UniTask.WaitUntil(() => IsAnimationInProcess == false, cancellationToken: cancellationToken);
 			
 			IsAnimationInProcess = true;
 
-			foreach (var normalizeAnimationStep in normalizeAnimationSteps)
+			try
 			{
-				if (normalizeAnimationStep.MoveAnimationSteps != null)
+				foreach (var normalizeAnimationStep in normalizeAnimationSteps)
 				{
-					var moveAnimationsList = normalizeAnimationStep.MoveAnimationSteps.Select(PlaySwapCellsAnimation);
+					if (normalizeAnimationStep.MoveAnimationSteps != null)
+					{
+						var moveAnimationsList = normalizeAnimationStep.MoveAnimationSteps.Select(moveAnimationStep => PlaySwapCellsAnimation(moveAnimationStep, cancellationToken));
 
-					await UniTask.WhenAll(moveAnimationsList);
-				}
+						await UniTask.WhenAll(moveAnimationsList);
+					}
 
-				var blocksToDestroyPositions =
-					normalizeAnimationStep.BlocksDestroyAnimationStep.BlocksToDestroyPositions?.ToArray();
+					var blocksToDestroyPositions =
+						normalizeAnimationStep.BlocksDestroyAnimationStep.BlocksToDestroyPositions?.ToArray();
 				
-				if (blocksToDestroyPositions != null)
-				{
-					await blocksToDestroyPositions
-						.Select(cellPosition =>
-						{
-							_gridViewModel.TryGetBlockView(cellPosition, out var blockView);
+					if (blocksToDestroyPositions != null)
+					{
+						await blocksToDestroyPositions
+							.Select(cellPosition =>
+							{
+								_gridViewModel.TryGetBlockView(cellPosition, out var blockView);
 
-							return blockView.DestroyBlock();
-						});
+								return blockView.DestroyBlock(cancellationToken);
+							});
 					
-					_gridViewModel.DestroyCellsViews(blocksToDestroyPositions);
+						_gridViewModel.DestroyCellsViews(blocksToDestroyPositions);
+					}
+				}
+
+				foreach (var disabledBlock in disabledBlocks)
+				{
+					disabledBlock.SetIsAllowedToMove(true);
 				}
 			}
-
-			foreach (var disabledBlock in disabledBlocks)
+			finally
 			{
-				disabledBlock.SetIsAllowedToMove(true);
+				IsAnimationInProcess = false;
 			}
-
-			IsAnimationInProcess = false;
 		}
 		
 		private List<BlockView> DisableMovingBlocks(BlockMoveAnimationStep blockMoveAnimationStep, IEnumerable<NormalizeGridAnimationStep> normalizeAnimationSteps)
@@ -136,7 +143,7 @@ namespace DefaultNamespace
 			return disabledBlocks;
 		}
 
-		private async UniTask PlaySwapCellsAnimation(BlockMoveAnimationStep blockMoveAnimationStep)
+		private async UniTask PlaySwapCellsAnimation(BlockMoveAnimationStep blockMoveAnimationStep, CancellationToken cancellationToken)
 		{
 			var blockViews = blockMoveAnimationStep.BlockMoveInfo
 				.Select(blockMoveInfo => _gridViewModel.TryGetBlockView(blockMoveInfo.StartBlockPosition, out var blockView)
@@ -158,7 +165,7 @@ namespace DefaultNamespace
 					blockMoveInfo.Direction.x * _gridViewModel.CellSize, blockMoveInfo.Direction.y * _gridViewModel.CellSize,
 					0);
 
-				return blockViews[index].MoveBlock(newPosition);
+				return blockViews[index].MoveBlock(newPosition, cancellationToken);
 			}));
 		}
 

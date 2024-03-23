@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace DefaultNamespace
 {
@@ -42,6 +40,11 @@ namespace DefaultNamespace
 		public void ApplyScaleFactor()
 		{
 			_gridView.GridParent.localScale = GetScaleFactor();
+		}
+
+		public void ResetScaleFactor()
+		{
+			_gridView.GridParent.localScale = Vector3.one;
 		}
 
 		public Vector3 GetCellPosition(int x, int y)
