@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Cysharp.Threading.Tasks.Linq;
@@ -7,11 +6,11 @@ using Object = UnityEngine.Object;
 
 namespace DefaultNamespace
 {
-	public class LevelController : ILevelController, IDisposable
+	public class LevelController : ILevelController
 	{
 		private const string LevelConfigKey = "Level{0}Config";
 		
-		private readonly IPlayfieldLoader _playfieldLoader;
+		private IPlayfieldLoader _playfieldLoader;
 		private readonly ICommandsProcessor _commandsProcessor;
 		private readonly IGridMovementProcessor _gridMovementProcessor;
 		private readonly IAddressableAssetsLoader _addressableAssetsLoader;
@@ -22,6 +21,8 @@ namespace DefaultNamespace
 		private PlayfieldCanvasView _playfieldCanvasView;
 		private CancellationTokenSource _playfieldUpdateTokenSource;
 		private CancellationToken _gameCancellationToken;
+		
+		private bool _isDisposed;
 
 		public LevelController(
 			IPlayfieldLoader playfieldLoader,
@@ -72,12 +73,25 @@ namespace DefaultNamespace
 		
 		public void Dispose()
 		{
-			_playfieldCanvasViewModel.ResetClicked -= OnResetClicked;
-			
-			_addressableAssetsLoader.UnloadAssets();
+			if (_isDisposed)
+			{
+				return;
+			}
+
+			_isDisposed = true;
 			
 			_playfieldUpdateTokenSource?.Cancel();
 			_playfieldUpdateTokenSource?.Dispose();
+			_playfieldLoader?.Dispose();
+			_playfieldLoader = null;
+			
+			_playfieldCanvasViewModel.ResetClicked -= OnResetClicked;
+
+			Object.Destroy(_playfieldCanvasView.gameObject);
+			_playfieldCanvasViewModel?.Dispose();
+			_levelConfig = null;
+			
+			_addressableAssetsLoader.UnloadAssets();
 		}
 
 		private async UniTask LoadPlayfield(CancellationToken cancellationToken)

@@ -11,11 +11,12 @@ namespace DefaultNamespace.Installers
 			Container.BindInterfacesTo<MoveBlockCommandFactory>().AsSingle();
 
 			Container.BindInterfacesTo<AddressableAssetsLoader>().AsTransient();
-			Container.BindInterfacesTo<PlayfieldLoader>().AsSingle();
+			Container.BindInterfacesTo<PlayfieldLoader>().AsTransient();
 			Container.BindInterfacesTo<GridMovementProcessor>().AsSingle();
-			Container.BindInterfacesTo<LevelController>().AsTransient();
 			Container.BindInterfacesTo<GameRunnerController>().AsTransient();
 			Container.BindInterfacesTo<PlayfieldCanvasViewModel>().AsSingle();
+
+			Container.BindFactory<LevelController, LevelControllerFactory>().AsSingle();
 		}
 	}
 }

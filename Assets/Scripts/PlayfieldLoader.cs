@@ -1,16 +1,14 @@
-using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using Zenject;
 using Object = UnityEngine.Object;
 
 namespace DefaultNamespace
 {
-	public class PlayfieldLoader : IPlayfieldLoader, IDisposable
+	public class PlayfieldLoader : IPlayfieldLoader
 	{
-		[Inject] private IGridViewModel _gridViewModel;
-		[Inject] private IAddressableAssetsLoader _addressableAssetsLoader;
+		private readonly IGridViewModel _gridViewModel;
+		private readonly IAddressableAssetsLoader _addressableAssetsLoader;
 		
 		private GameObject _gridPrefab;
 		private GameObject _firePrefab;
@@ -19,9 +17,29 @@ namespace DefaultNamespace
 		
 		private GridView _gridView;
 		private GridModel _gridModel;
+		private GameObject _backgroundView;
 		
+		private bool _isDisposed;
+
+		public PlayfieldLoader(IGridViewModel gridViewModel, IAddressableAssetsLoader addressableAssetsLoader)
+		{
+			_gridViewModel = gridViewModel;
+			_addressableAssetsLoader = addressableAssetsLoader;
+		}
+
 		public void Dispose()
 		{
+			if (_isDisposed)
+			{
+				return;
+			}
+
+			_isDisposed = true;
+			DestroyBlocks();
+			
+			Object.Destroy(_gridView.gameObject);
+			Object.Destroy(_backgroundView.gameObject);
+			
 			_addressableAssetsLoader.UnloadAssets();
 		}
 
@@ -32,13 +50,21 @@ namespace DefaultNamespace
 			_gridPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Grid", cancellationToken);
 			_backgroundPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Background", cancellationToken);
 
-			Object.Instantiate(_backgroundPrefab);
+			_backgroundView = Object.Instantiate(_backgroundPrefab);
 			_gridView = Object.Instantiate(_gridPrefab).GetComponent<GridView>();
 			
 			SpawnGrid(levelConfig);
 		}
 		
 		public void ResetPlayfield(LevelConfig levelConfig)
+		{
+			DestroyBlocks();
+			_gridViewModel.ResetScaleFactor();
+			
+			SpawnGrid(levelConfig);
+		}
+
+		private void DestroyBlocks()
 		{
 			foreach (var blockViews in _gridViewModel.BlockViews)
 			{
@@ -52,10 +78,6 @@ namespace DefaultNamespace
 					Object.Destroy(blockView.gameObject);
 				}
 			}
-			
-			_gridViewModel.ResetScaleFactor();
-			
-			SpawnGrid(levelConfig);
 		}
 
 		private void SpawnGrid(LevelConfig levelConfig)

@@ -9,17 +9,21 @@ namespace DefaultNamespace
 	{
 		[Inject] private IGameRunnerController _gameRunnerController;
 		
+		[SerializeField] private GameSettingsConfig _gameSettingsConfig;
+		
 		private CancellationTokenSource _gameCancellationTokenSource = new();
 
 		private void Awake()
 		{
-			_gameRunnerController.Execute(_gameCancellationTokenSource.Token).Forget();
+			_gameRunnerController.Execute(_gameSettingsConfig, _gameCancellationTokenSource.Token).Forget();
 		}
 
-		private void OnDestroy()
+		private void OnApplicationQuit()
 		{
 			_gameCancellationTokenSource.Cancel();
 			_gameCancellationTokenSource.Dispose();
+
+			_gameRunnerController.Dispose();
 		}
 	}
 }
