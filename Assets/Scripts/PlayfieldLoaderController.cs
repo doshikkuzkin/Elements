@@ -57,16 +57,10 @@ namespace DefaultNamespace
 			return LoadPlayfield(cancellationToken);
 		}
 
-		private void OnResetClicked()
-		{
-			_saveRestoreDataObserver.RequestClear();
-			ResetPlayfield();
-			
-			_resetPlayfieldNotifier.NotifyPlayfieldReset();
-		}
-
 		public override UniTask Stop(CancellationToken cancellationToken)
 		{
+			_playfieldCanvasViewModel.ResetClicked -= OnResetClicked;
+			
 			ReturnBlocksToPools();
 			
 			Object.Destroy(_gridView.gameObject);
@@ -75,6 +69,14 @@ namespace DefaultNamespace
 			_addressableAssetsLoader.UnloadAssets();
 			
 			return UniTask.CompletedTask;
+		}
+		
+		private void OnResetClicked()
+		{
+			_saveRestoreDataObserver.RequestClear();
+			ResetPlayfield();
+			
+			_resetPlayfieldNotifier.NotifyPlayfieldReset();
 		}
 		
 		private void ResetPlayfield()

@@ -6,6 +6,7 @@ namespace DefaultNamespace.Installers
 	public class ProjectInstaller : MonoInstaller
 	{
 		[SerializeField] private GameSettingsConfig _gameSettingsConfig;
+		[SerializeField] private LoaderView _loaderView;
 		
 		public override void InstallBindings()
 		{
@@ -28,9 +29,13 @@ namespace DefaultNamespace.Installers
 			Container.Bind<IGameSettingsConfigProvider>().To<GameSettingsConfigProvider>()
 				.FromInstance(new GameSettingsConfigProvider(_gameSettingsConfig)).AsSingle();
 
+			Container.Bind<ILoaderView>().FromInstance(_loaderView).AsSingle();
+
 			Container.BindIFactory<GameRunnerController>().To<GameRunnerController>().AsSingle();
 			Container.BindIFactory<PlayfieldLoaderController>().To<PlayfieldLoaderController>().AsSingle();
 			Container.BindIFactory<LevelController>().To<LevelController>().AsSingle();
+			Container.BindIFactory<LoaderStateMachineDecorator>().To<LoaderStateMachineDecorator>().AsSingle();
+			Container.BindIFactory<RootStateMachine>().To<RootStateMachine>().AsSingle();
 		}
 	}
 }

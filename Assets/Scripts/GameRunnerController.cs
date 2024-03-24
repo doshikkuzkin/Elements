@@ -35,18 +35,18 @@ namespace DefaultNamespace
 			_gameRunnerControllerFactory = gameRunnerControllerFactory;
 		}
 
-		public override UniTask Initialize(CancellationToken cancellationToken)
+		public override async UniTask Initialize(CancellationToken cancellationToken)
 		{
 			_gameCancellationToken = cancellationToken;
 			RecreateLevelCancellationSource(cancellationToken);
 			
-			return base.Initialize(cancellationToken);
+			await RunGame(_levelCancellationSource.Token);
+			
+			await base.Initialize(cancellationToken);
 		}
 
 		public override async UniTask<StateResult> Execute(CancellationToken cancellationToken)
 		{
-			await RunGame(_levelCancellationSource.Token);
-			
 			_playfieldCanvasViewModel.NextClicked += OpenNextLevel;
 			_levelWinObserver.LevelWin += OpenNextLevel;
 
