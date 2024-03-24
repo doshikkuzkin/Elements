@@ -15,17 +15,17 @@ MonoBehaviour:
   GridModel:
     Grid:
     - Cells:
-      - BlockType: 2
-      - BlockType: 2
-    - Cells:
-      - BlockType: 0
-      - BlockType: 0
-    - Cells:
-      - BlockType: 2
       - BlockType: 1
+      - BlockType: 1
+    - Cells:
+      - BlockType: -1
+      - BlockType: -1
     - Cells:
       - BlockType: 1
       - BlockType: 0
     - Cells:
-      - BlockType: 1
       - BlockType: 0
+      - BlockType: -1
+    - Cells:
+      - BlockType: 0
+      - BlockType: -1

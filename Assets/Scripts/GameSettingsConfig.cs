@@ -6,7 +6,9 @@ namespace DefaultNamespace
 	public class GameSettingsConfig : ScriptableObject
 	{
 		[SerializeField] private int _levelsCount;
+		[SerializeField] private BlockTypeData[] _blockTypesData;
 
 		public int LevelsCount => _levelsCount;
+		public BlockTypeData[] BlockTypesData => _blockTypesData;
 	}
 }

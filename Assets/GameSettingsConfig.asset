@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: GameSettingsConfig
   m_EditorClassIdentifier: 
   _levelsCount: 3
+  _blockTypesData:
+  - AddressablesKey: Fire
+  - AddressablesKey: Water

@@ -20,7 +20,7 @@ namespace DefaultNamespace
 
 		public CellModel CellModel { get; private set; }
 		public bool IsAllowedToMove { get; private set; } = true;
-		public BlockType BlockType { get; private set; }
+		public int BlockType { get; private set; }
 
 		public void SetCellModel(CellModel cellModel)
 		{
@@ -32,7 +32,7 @@ namespace DefaultNamespace
 			IsAllowedToMove = isAllowedToMove;
 		}
 
-		public void SetBlockType(BlockType blockType)
+		public void SetBlockType(int blockType)
 		{
 			BlockType = blockType;
 		}

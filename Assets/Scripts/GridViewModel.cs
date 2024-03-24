@@ -86,7 +86,7 @@ namespace DefaultNamespace
 
 		public bool IsEmptyCell(Vector2Int cellPosition)
 		{
-			return _gridModel.Grid[cellPosition.x].Cells[cellPosition.y].BlockType == BlockType.None;
+			return _gridModel.Grid[cellPosition.x].Cells[cellPosition.y].BlockType == BlockTypeData.EmptyBlockType;
 		}
 
 		public void SwapCells(Vector2Int firstCellPosition, Vector2Int secondCellPosition)
@@ -137,7 +137,7 @@ namespace DefaultNamespace
 
 		public bool AreAllBlocksDestroyed()
 		{
-			if (_gridModel.Grid.SelectMany(column => column.Cells).Any(cell => cell.BlockType != BlockType.None))
+			if (_gridModel.Grid.SelectMany(column => column.Cells).Any(cell => cell.BlockType != BlockTypeData.EmptyBlockType))
 			{
 				return false;
 			}

@@ -18,7 +18,8 @@ namespace DefaultNamespace
 		private readonly IPlayfieldCanvasViewModel _playfieldCanvasViewModel;
 		private readonly IResetPlayfieldNotifier _resetPlayfieldNotifier;
 		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
-		private readonly Dictionary<BlockType, PrefabsPool<BlockView>> _blocksPoolsDictionary = new();
+		private readonly Dictionary<int, PrefabsPool<BlockView>> _blocksPoolsDictionary = new();
+		private readonly IGameSettingsConfigProvider _gameSettingsConfigProvider;
 		
 		private LevelConfig _levelConfig;
 		
@@ -35,7 +36,8 @@ namespace DefaultNamespace
 			ILevelIndexProvider levelIndexProvider,
 			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
 			IResetPlayfieldNotifier resetPlayfieldNotifier,
-			ISaveRestoreDataObserver saveRestoreDataObserver)
+			ISaveRestoreDataObserver saveRestoreDataObserver,
+			IGameSettingsConfigProvider gameSettingsConfigProvider)
 		{
 			_gridViewModel = gridViewModel;
 			_addressableAssetsLoader = addressableAssetsLoader;
@@ -43,6 +45,7 @@ namespace DefaultNamespace
 			_playfieldCanvasViewModel = playfieldCanvasViewModel;
 			_resetPlayfieldNotifier = resetPlayfieldNotifier;
 			_saveRestoreDataObserver = saveRestoreDataObserver;
+			_gameSettingsConfigProvider = gameSettingsConfigProvider;
 		}
 		
 		public override UniTask Initialize(CancellationToken cancellationToken)
@@ -114,11 +117,14 @@ namespace DefaultNamespace
 
 		private async UniTask InitializePools(CancellationToken cancellationToken)
 		{
-			var firePrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Fire", cancellationToken);
-			var waterPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Water", cancellationToken);
+			var blocksTypes = _gameSettingsConfigProvider.GameSettingsConfig.BlockTypesData;
 			
-			_blocksPoolsDictionary.Add(BlockType.Fire, new PrefabsPool<BlockView>(firePrefab));
-			_blocksPoolsDictionary.Add(BlockType.Water, new PrefabsPool<BlockView>(waterPrefab));
+			for (var i = 0; i < blocksTypes.Length; i++)
+			{
+				var prefab = await _addressableAssetsLoader.LoadAsset<GameObject>(blocksTypes[i].AddressablesKey, cancellationToken);
+				
+				_blocksPoolsDictionary.Add(i, new PrefabsPool<BlockView>(prefab));
+			}
 		}
 
 		private void ReturnBlocksToPools()
@@ -164,7 +170,7 @@ namespace DefaultNamespace
 			_gridViewModel.ApplyScaleFactor();
 		}
 		
-		private bool TrySpawnPrefab(BlockType blockType, Vector3 position, out BlockView blockView)
+		private bool TrySpawnPrefab(int blockType, Vector3 position, out BlockView blockView)
 		{
 			blockView = null;
 

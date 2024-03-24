@@ -6,21 +6,21 @@ namespace DefaultNamespace
 	[Serializable]
 	public class CellModel
 	{
-		public BlockType BlockType;
+		public int BlockType;
 
 		public Vector2Int Position => new (Column, Row);
 		public int Column { get; private set; }
 		public int Row { get; private set; }
 		public bool IsConnected { get; private set; }
 
-		public CellModel(BlockType blockType, int column, int row)
+		public CellModel(int blockType, int column, int row)
 		{
 			BlockType = blockType;
 			Column = column;
 			Row = row;
 		}
 		
-		public void SetBlockType(BlockType blockType)
+		public void SetBlockType(int blockType)
 		{
 			BlockType = blockType;
 		}

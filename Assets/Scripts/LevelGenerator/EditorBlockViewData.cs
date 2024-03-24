@@ -6,7 +6,7 @@ namespace DefaultNamespace
 	[Serializable]
 	public class EditorBlockViewData
 	{
-		public BlockType BlockType;
+		public int BlockType;
 		public Sprite BlockSprite;
 	}
 }

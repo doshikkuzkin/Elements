@@ -85,12 +85,12 @@ namespace DefaultNamespace
 			{
 				for (int i = 1; i < column.Cells.Length; i++)
 				{
-					if (column.Cells[i].BlockType == BlockType.None || column.Cells[i - 1].BlockType != BlockType.None)
+					if (column.Cells[i].BlockType == BlockTypeData.EmptyBlockType || column.Cells[i - 1].BlockType != BlockTypeData.EmptyBlockType)
 					{
 						continue;
 					}
 
-					var firstEmptyCell = column.Cells.First(cell => cell.BlockType == BlockType.None);
+					var firstEmptyCell = column.Cells.First(cell => cell.BlockType == BlockTypeData.EmptyBlockType);
 
 					var cellToMove = column.Cells[i].Position;
 					var firstEmptyCellPosition = firstEmptyCell.Position;
@@ -108,7 +108,7 @@ namespace DefaultNamespace
 		{
 			foreach (var cell in cellsToDestroy)
 			{
-				cell.SetBlockType(BlockType.None);
+				cell.SetBlockType(BlockTypeData.EmptyBlockType);
 			}
 		}
 
@@ -118,7 +118,7 @@ namespace DefaultNamespace
 
 			columnsToMove = grid.Where(column =>
 					column.Cells.Where(cell => cell.Position.y > 0)
-						.Any(cell => cell.BlockType != BlockType.None && _gridViewModel.IsEmptyCell(new Vector2Int(cell.Position.x, cell.Position.y - 1))))
+						.Any(cell => cell.BlockType != BlockTypeData.EmptyBlockType && _gridViewModel.IsEmptyCell(new Vector2Int(cell.Position.x, cell.Position.y - 1))))
 				.ToList();
 
 			return columnsToMove.Any();
@@ -136,7 +136,7 @@ namespace DefaultNamespace
 			{
 				foreach (var cell in column.Cells)
 				{
-					if (cell.BlockType == BlockType.None)
+					if (cell.BlockType == BlockTypeData.EmptyBlockType)
 					{
 						continue;
 					}
@@ -221,7 +221,7 @@ namespace DefaultNamespace
 			return cellsToDestroy.Count > 0;
 		}
 
-		private bool TryGetConnectedCellsGroup(Vector2Int cellPosition, BlockType targetBlockType, out List<CellModel> connectedCells)
+		private bool TryGetConnectedCellsGroup(Vector2Int cellPosition, int targetBlockType, out List<CellModel> connectedCells)
 		{
 			connectedCells = new List<CellModel>();
 			
@@ -230,7 +230,7 @@ namespace DefaultNamespace
 			return connectedCells.Count > 0;
 		}
 
-		private void GetConnectedCells(Vector2Int cellPosition, BlockType targetBlockType, List<CellModel> targetList)
+		private void GetConnectedCells(Vector2Int cellPosition, int targetBlockType, List<CellModel> targetList)
 		{
 			GetConnectedCellsInDirection(cellPosition, Vector2Int.up, targetBlockType, targetList);
 			GetConnectedCellsInDirection(cellPosition, Vector2Int.down, targetBlockType, targetList);
@@ -238,7 +238,7 @@ namespace DefaultNamespace
 			GetConnectedCellsInDirection(cellPosition, Vector2Int.right, targetBlockType, targetList);
 		}
 
-		private void GetConnectedCellsInDirection(Vector2Int cellPosition, Vector2Int direction, BlockType targetBlockType, List<CellModel> targetList)
+		private void GetConnectedCellsInDirection(Vector2Int cellPosition, Vector2Int direction, int targetBlockType, List<CellModel> targetList)
 		{
 			if (!IsTargetCellInsideGrid(cellPosition, direction))
 			{
@@ -276,7 +276,7 @@ namespace DefaultNamespace
 				Math.Abs(targetCellPosition.y - cellToMove.y));
 			distanceBetweenCells *= moveDirection;
 
-			if (cellToSwapWith.BlockType != BlockType.None)
+			if (cellToSwapWith.BlockType != BlockTypeData.EmptyBlockType)
 			{
 				var blockToSwapWithDirection = distanceBetweenCells * -1;
 

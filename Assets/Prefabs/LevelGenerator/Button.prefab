@@ -157,9 +157,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cellButton: {fileID: 6013408108354572489}
   _blockViewData:
-  - BlockType: 0
+  - BlockType: -1
     BlockSprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  - BlockType: 1
+  - BlockType: 0
     BlockSprite: {fileID: 21300000, guid: 06e947d04ab874d82963e62d96875063, type: 3}
-  - BlockType: 2
+  - BlockType: 1
     BlockSprite: {fileID: 21300000, guid: 0b632425f316a404f9a1e88875bc540d, type: 3}
+  _gameSettingsConfig: {fileID: 11400000, guid: 13b3efbe25ecd45e79015f953bb79e2e, type: 2}

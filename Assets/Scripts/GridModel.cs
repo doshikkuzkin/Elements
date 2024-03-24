@@ -76,7 +76,7 @@ namespace DefaultNamespace
 
 				for (var y = 0; y < rows; y++)
 				{
-					grid[x].Cells[y] = new CellModel(BlockType.None, x, y);
+					grid[x].Cells[y] = new CellModel(BlockTypeData.EmptyBlockType, x, y);
 				}
 			}
 

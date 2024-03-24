@@ -9,6 +9,7 @@ namespace DefaultNamespace
 	{
 		[SerializeField] private Button _cellButton;
 		[SerializeField] private EditorBlockViewData[] _blockViewData;
+		[SerializeField] private GameSettingsConfig _gameSettingsConfig;
 		
 		private CellModel _cellModel;
 
@@ -26,12 +27,12 @@ namespace DefaultNamespace
 
 		private void OnCellButtonClicked()
 		{
-			var blockType = _cellModel.BlockType.NextValue();
+			var blockType = _gameSettingsConfig.GetNextBlockType(_cellModel.BlockType);
 			
 			UpdateBlockType(blockType);
 		}
 
-		private void UpdateBlockType(BlockType blockType)
+		private void UpdateBlockType(int blockType)
 		{
 			_cellModel.SetBlockType(blockType);
 			
