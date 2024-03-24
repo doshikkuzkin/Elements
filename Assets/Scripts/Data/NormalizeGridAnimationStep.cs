@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Data
 {
-	public struct NormalizeGridAnimationStep
+	public class NormalizeGridAnimationStep : BaseAnimationStep
 	{
 		public IEnumerable<BlockMoveAnimationStep> MoveAnimationSteps { get; private set; }
 		public BlocksDestroyAnimationStep BlocksDestroyAnimationStep { get; private set; }

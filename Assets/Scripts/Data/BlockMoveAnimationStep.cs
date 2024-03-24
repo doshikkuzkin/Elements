@@ -1,6 +1,6 @@
 namespace Data
 {
-	public struct BlockMoveAnimationStep
+	public class BlockMoveAnimationStep : BaseAnimationStep
 	{
 		public BlockMoveInfo[] BlockMoveInfo { get; private set; }
 

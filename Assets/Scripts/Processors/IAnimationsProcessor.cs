@@ -9,6 +9,6 @@ namespace Processors
 		bool HasAnimationsInProcess { get; }
 
 		UniTask PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep,
-			NormalizeGridAnimationStep[] normalizeAnimationSteps, CancellationToken cancellationToken);
+			NormalizeGridAnimationStepsContainer normalizeAnimationSteps, CancellationToken cancellationToken);
 	}
 }

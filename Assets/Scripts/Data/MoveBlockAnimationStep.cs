@@ -3,7 +3,7 @@ using Views;
 
 namespace Data
 {
-	public class MoveBlockAnimationStep
+	public class MoveBlockAnimationStep : BaseAnimationStep
 	{
 		public MoveBlockAnimationStep(BlockView blockView, Vector3 endPosition)
 		{

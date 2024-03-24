@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Data
 {
-	public struct BlocksDestroyAnimationStep
+	public class BlocksDestroyAnimationStep : BaseAnimationStep
 	{
 		public IEnumerable<Vector2Int> BlocksToDestroyPositions { get; private set; }
 

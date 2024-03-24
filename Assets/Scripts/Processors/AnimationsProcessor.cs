@@ -11,46 +11,65 @@ namespace Processors
 {
 	public class AnimationsProcessor : IAnimationsProcessor
 	{
-		private static int AnimationsInProcessCount;
-		private static bool IsAnimationInProcess;
+		private static int _animationsInProcessCount;
 
 		private readonly IGridViewModel _gridViewModel;
+
+		private readonly Queue<IAnimationStep> _blockMoveSteps = new ();
+		private readonly Queue<IAnimationStep> _normalizeGridAnimationSteps = new ();
 
 		public AnimationsProcessor(IGridViewModel gridViewModel)
 		{
 			_gridViewModel = gridViewModel;
 		}
 
-		public bool HasAnimationsInProcess => AnimationsInProcessCount > 0;
+		public bool HasAnimationsInProcess => _animationsInProcessCount > 0;
 
 		public async UniTask PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep,
-			NormalizeGridAnimationStep[] normalizeAnimationSteps, CancellationToken cancellationToken)
+			NormalizeGridAnimationStepsContainer normalizeAnimationStepsContainer, CancellationToken cancellationToken)
 		{
-			AnimationsInProcessCount++;
+			_animationsInProcessCount++;
+			
+			var blockMoveStepToWait = _blockMoveSteps.Count > 0 ? _blockMoveSteps.Last() : null;
+			var normalizeStepToWait = _normalizeGridAnimationSteps.Count > 0 ? _normalizeGridAnimationSteps.Last() : null;
+			
+			_blockMoveSteps.Enqueue(blockMoveAnimationStep);
+			_normalizeGridAnimationSteps.Enqueue(normalizeAnimationStepsContainer);
 
-			var disabledBlocks = DisableMovingBlocks(blockMoveAnimationStep, normalizeAnimationSteps);
+			var disabledBlocks = DisableMovingBlocks(blockMoveAnimationStep, normalizeAnimationStepsContainer.NormalizeGridAnimationSteps);
 
+			if (blockMoveStepToWait != null)
+			{
+				await UniTask.WaitUntil(() => blockMoveStepToWait.IsCompleted, cancellationToken: cancellationToken);
+			}
+			
 			await PlaySwapAnimation(blockMoveAnimationStep, cancellationToken);
+			
+			blockMoveAnimationStep.SetIsCompleted(true);
+			_blockMoveSteps.Dequeue();
 
-			await UniTask.WaitUntil(() => IsAnimationInProcess == false, cancellationToken: cancellationToken);
-
-			IsAnimationInProcess = true;
+			if (normalizeStepToWait != null)
+			{
+				await UniTask.WaitUntil(() => normalizeStepToWait.IsCompleted, cancellationToken: cancellationToken);
+			}
 
 			cancellationToken.ThrowIfCancellationRequested();
 
 			try
 			{
-				await PlayNormalizeAnimation(normalizeAnimationSteps, cancellationToken);
+				await PlayNormalizeAnimation(normalizeAnimationStepsContainer.NormalizeGridAnimationSteps, cancellationToken);
 				
 				foreach (var disabledBlock in disabledBlocks)
 				{
 					disabledBlock.SetIsAllowedToMove(true);
 				}
+				
+				normalizeAnimationStepsContainer.SetIsCompleted(true);
+				_normalizeGridAnimationSteps.Dequeue();
 			}
 			finally
 			{
-				IsAnimationInProcess = false;
-				AnimationsInProcessCount--;
+				_animationsInProcessCount--;
 			}
 		}
 
@@ -70,7 +89,7 @@ namespace Processors
 				cancellationToken.ThrowIfCancellationRequested();
 
 				var blocksToDestroyPositions =
-					normalizeAnimationStep.BlocksDestroyAnimationStep.BlocksToDestroyPositions?.ToArray();
+					normalizeAnimationStep.BlocksDestroyAnimationStep?.BlocksToDestroyPositions?.ToArray();
 
 				if (blocksToDestroyPositions != null)
 				{
@@ -143,7 +162,7 @@ namespace Processors
 					}
 				}
 
-				var cellsToDestroy = normalizeAnimationStep.BlocksDestroyAnimationStep.BlocksToDestroyPositions;
+				var cellsToDestroy = normalizeAnimationStep.BlocksDestroyAnimationStep?.BlocksToDestroyPositions;
 
 				if (cellsToDestroy != null)
 				{

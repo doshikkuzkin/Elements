@@ -63,7 +63,7 @@ namespace Commands
 			_saveRestoreDataObserver.RequestSave();
 
 			_animationsProcessor
-				.PlayAnimationSequence(blockMoveAnimationStep, normalizeAnimationSteps.ToArray(), cancellationToken)
+				.PlayAnimationSequence(blockMoveAnimationStep, new NormalizeGridAnimationStepsContainer(normalizeAnimationSteps.ToArray()), cancellationToken)
 				.Forget();
 		}
 
