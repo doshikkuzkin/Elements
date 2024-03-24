@@ -58,7 +58,7 @@ namespace LevelEditor
 				return;
 			}
 
-			AssetDataBaseTool.AssertHasFolder("Assets", "LevelConfig");
+			AssetDataBaseTool.AssertHasFolder("Assets", "LevelConfigs");
 
 			var existingAsset = AssetDataBaseTool.LoadAssetAtPath<LevelConfig>($"Assets/LevelConfigs/Level{levelIndex}Config.asset");
 			
