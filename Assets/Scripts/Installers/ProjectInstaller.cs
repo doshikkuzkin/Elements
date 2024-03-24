@@ -40,7 +40,7 @@ namespace Installers
 
 			Container.Bind<ILoaderView>().FromInstance(_loaderView).AsSingle();
 
-			Container.BindIFactory<GameRunnerController>().To<GameRunnerController>().AsSingle();
+			Container.BindIFactory<PlayfieldState>().To<PlayfieldState>().AsSingle();
 			Container.BindIFactory<PlayfieldLoaderController>().To<PlayfieldLoaderController>().AsSingle();
 			Container.BindIFactory<LevelController>().To<LevelController>().AsSingle();
 			Container.BindIFactory<LoaderStateMachineDecorator>().To<LoaderStateMachineDecorator>().AsSingle();

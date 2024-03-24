@@ -8,9 +8,9 @@ using Zenject;
 
 namespace Controllers
 {
-	public class GameRunnerController : StateBase
+	public class PlayfieldState : StateBase
 	{
-		private readonly IFactory<GameRunnerController> _gameRunnerControllerFactory;
+		private readonly IFactory<PlayfieldState> _gameRunnerControllerFactory;
 		private readonly IFactory<LevelController> _levelControllerFactory;
 		private readonly ILevelIndexProvider _levelIndexProvider;
 		private readonly ILevelStateProvider _levelStateProvider;
@@ -24,13 +24,13 @@ namespace Controllers
 
 		private LevelController _levelController;
 
-		public GameRunnerController(
+		public PlayfieldState(
 			IFactory<LevelController> levelControllerFactory,
 			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
 			ILevelWinObserver levelWinObserver,
 			ISaveRestoreDataObserver saveRestoreDataObserver,
 			ILevelIndexProvider levelIndexProvider,
-			IFactory<GameRunnerController> gameRunnerControllerFactory,
+			IFactory<PlayfieldState> gameRunnerControllerFactory,
 			ILevelStateProvider levelStateProvider)
 		{
 			_levelControllerFactory = levelControllerFactory;

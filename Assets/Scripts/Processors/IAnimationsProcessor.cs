@@ -8,6 +8,8 @@ namespace Processors
 	{
 		bool HasAnimationsInProcess { get; }
 
+		void ClearAnimationsSequence();
+		
 		UniTask PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep,
 			NormalizeGridAnimationStepsContainer normalizeAnimationSteps, CancellationToken cancellationToken);
 	}

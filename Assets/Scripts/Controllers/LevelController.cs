@@ -73,6 +73,8 @@ namespace Controllers
 		{
 			_playfieldUpdateTokenSource?.Cancel();
 			_playfieldUpdateTokenSource?.Dispose();
+			
+			_animationsProcessor.ClearAnimationsSequence();
 
 			_resetPlayfieldObserver.PlayfieldReset -= OnPlayfieldReset;
 
@@ -128,6 +130,7 @@ namespace Controllers
 			_levelStateProvider.SetIsLevelCleared(false);
 
 			RecreateUpdateToken(_gameCancellationToken);
+			_animationsProcessor.ClearAnimationsSequence();
 			UpdatePlayfieldState(_playfieldUpdateTokenSource.Token).Forget();
 		}
 	}

@@ -9,7 +9,7 @@ public class ProjectRunner : MonoBehaviour
 {
 	private readonly CancellationTokenSource _gameCancellationTokenSource = new();
 
-	[Inject] private IFactory<GameRunnerController> _gameRunnerControllerFactory;
+	[Inject] private IFactory<PlayfieldState> _gameRunnerControllerFactory;
 	[Inject] private IFactory<RootStateMachine> _rootStateMachineFactory;
 
 	private StateMachine _stateMachine;

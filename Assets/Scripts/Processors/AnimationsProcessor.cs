@@ -25,6 +25,14 @@ namespace Processors
 
 		public bool HasAnimationsInProcess => _animationsInProcessCount > 0;
 
+		public void ClearAnimationsSequence()
+		{
+			_blockMoveSteps.Clear();
+			_normalizeGridAnimationSteps.Clear();
+
+			_animationsInProcessCount = 0;
+		}
+		
 		public async UniTask PlayAnimationSequence(BlockMoveAnimationStep blockMoveAnimationStep,
 			NormalizeGridAnimationStepsContainer normalizeAnimationStepsContainer, CancellationToken cancellationToken)
 		{
