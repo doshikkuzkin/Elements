@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using Data;
 using DG.Tweening;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Views
 {
@@ -11,6 +12,8 @@ namespace Views
 	public class BlockView : MonoBehaviour
 	{
 		private const string DestroyAnimationTriggerName = "Destroy";
+		private const string AnimationOffsetParameterName = "AnimationOffset";
+		
 		private const float AnimationDuration = .5f;
 
 		[SerializeField] private SortingAxis _sortingAxis;
@@ -22,6 +25,11 @@ namespace Views
 		public CellModel CellModel { get; private set; }
 		public bool IsAllowedToMove { get; private set; } = true;
 		public int BlockType { get; private set; }
+
+		private void Start()
+		{
+			_animator.SetFloat(AnimationOffsetParameterName, Random.Range(.0f, 0.8f));
+		}
 
 		public void SetCellModel(CellModel cellModel)
 		{
