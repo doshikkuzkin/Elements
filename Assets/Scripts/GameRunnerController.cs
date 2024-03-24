@@ -1,17 +1,19 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Zenject;
 
 namespace DefaultNamespace
 {
-	public class GameRunnerController : IGameRunnerController
+	public class GameRunnerController : StateBase
 	{
 		private readonly LevelControllerFactory _levelControllerFactory;
 		private readonly IPlayfieldCanvasViewModel _playfieldCanvasViewModel;
 		private readonly ILevelWinObserver _levelWinObserver;
 		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
 		private readonly ILevelIndexProvider _levelIndexProvider;
+		private readonly IFactory<GameRunnerController> _gameRunnerControllerFactory;
 
-		private ILevelController _levelController;
+		private LevelController _levelController;
 		private CancellationTokenSource _levelCancellationSource;
 		private CancellationToken _gameCancellationToken;
 		
@@ -22,71 +24,67 @@ namespace DefaultNamespace
 			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
 			ILevelWinObserver levelWinObserver,
 			ISaveRestoreDataObserver saveRestoreDataObserver,
-			ILevelIndexProvider levelIndexProvider)
+			ILevelIndexProvider levelIndexProvider,
+			IFactory<GameRunnerController> gameRunnerControllerFactory)
 		{
 			_levelControllerFactory = levelControllerFactory;
 			_playfieldCanvasViewModel = playfieldCanvasViewModel;
 			_levelWinObserver = levelWinObserver;
 			_saveRestoreDataObserver = saveRestoreDataObserver;
 			_levelIndexProvider = levelIndexProvider;
+			_gameRunnerControllerFactory = gameRunnerControllerFactory;
 		}
-		
-		public async UniTask Execute(CancellationToken cancellationToken)
+
+		public override UniTask Initialize(CancellationToken cancellationToken)
 		{
 			_gameCancellationToken = cancellationToken;
-			
-			_levelController = _levelControllerFactory.Create();
-			
 			RecreateLevelCancellationSource(cancellationToken);
 			
-			await RunGame(_levelIndexProvider.CurrentLevelIndex, _levelCancellationSource.Token);
+			return base.Initialize(cancellationToken);
+		}
+
+		public override async UniTask<StateResult> Execute(CancellationToken cancellationToken)
+		{
+			await RunGame(_levelCancellationSource.Token);
 			
 			_playfieldCanvasViewModel.NextClicked += OpenNextLevel;
 			_levelWinObserver.LevelWin += OpenNextLevel;
+
+			return await base.Execute(cancellationToken);
 		}
 
-		private async UniTask RunGame(int levelIndex, CancellationToken cancellationToken)
+		public override UniTask Stop(CancellationToken cancellationToken)
 		{
-			await _levelController.Initialize(levelIndex + 1, cancellationToken);
-			await _levelController.Execute(cancellationToken);
-		}
-
-		public void Dispose()
-		{
-			if (_isDisposed)
-			{
-				return;
-			}
-
-			_isDisposed = true;
 			_playfieldCanvasViewModel.NextClicked -= OpenNextLevel;
 			_levelWinObserver.LevelWin -= OpenNextLevel;
 			
 			_levelCancellationSource?.Cancel();
 			_levelCancellationSource?.Dispose();
 			
-			_levelController?.Dispose();
+			return _levelController.Stop(cancellationToken);
+		}
+
+		private async UniTask RunGame(CancellationToken cancellationToken)
+		{
+			_levelController = _levelControllerFactory.Create();
+			
+			await _levelController.Initialize(cancellationToken);
+			await _levelController.Execute(cancellationToken);
 		}
 		
 		private void OpenNextLevel()
 		{
 			RecreateLevelCancellationSource(_gameCancellationToken);
-			_levelController.Dispose();
-
-			_levelController = _levelControllerFactory.Create();
-
-			var levelToLoad = _levelIndexProvider.NextLevelIndex;
-			_levelIndexProvider.IncrementLevelIndex();
 			
+			_levelIndexProvider.IncrementLevelIndex();
 			_saveRestoreDataObserver.RequestClear();
 			
-			RunGame(levelToLoad, _levelCancellationSource.Token).Forget();
+			StateCompletionSource.TrySetResult(new StateResult(_gameRunnerControllerFactory.Create()));
 		}
 
 		private void RecreateLevelCancellationSource(CancellationToken cancellationToken)
 		{
 			_levelCancellationSource?.Cancel();
-
 			_levelCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		}
 	}

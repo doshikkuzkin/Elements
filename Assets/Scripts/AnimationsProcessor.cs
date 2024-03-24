@@ -32,6 +32,8 @@ namespace DefaultNamespace
 			await UniTask.WaitUntil(() => IsAnimationInProcess == false, cancellationToken: cancellationToken);
 			
 			IsAnimationInProcess = true;
+			
+			cancellationToken.ThrowIfCancellationRequested();
 
 			try
 			{
@@ -60,6 +62,8 @@ namespace DefaultNamespace
 					await UniTask.WhenAll(moveAnimationsList);
 				}
 
+				cancellationToken.ThrowIfCancellationRequested();
+				
 				var blocksToDestroyPositions =
 					normalizeAnimationStep.BlocksDestroyAnimationStep.BlocksToDestroyPositions?.ToArray();
 				
@@ -68,9 +72,12 @@ namespace DefaultNamespace
 					await blocksToDestroyPositions
 						.Select(cellPosition =>
 						{
-							_gridViewModel.TryGetBlockView(cellPosition, out var blockView);
+							if (_gridViewModel.TryGetBlockView(cellPosition, out var blockView))
+							{
+								return blockView.DestroyBlock(cancellationToken);
+							}
 
-							return blockView.DestroyBlock(cancellationToken);
+							return UniTask.CompletedTask;
 						});
 					
 					_gridViewModel.DestroyCellsViews(blocksToDestroyPositions);

@@ -7,21 +7,22 @@ namespace DefaultNamespace
 {
 	public class ProjectRunner : MonoBehaviour
 	{
-		[Inject] private IGameRunnerController _gameRunnerController;
+		[Inject] private IFactory<GameRunnerController> _gameRunnerControllerFactory;
 		
+		private StateMachine _stateMachine = new();
 		private CancellationTokenSource _gameCancellationTokenSource = new();
 
 		private void Awake()
 		{
-			_gameRunnerController.Execute(_gameCancellationTokenSource.Token).Forget();
+			var gameRunnerState = _gameRunnerControllerFactory.Create();
+			
+			_stateMachine.Execute(gameRunnerState, _gameCancellationTokenSource.Token).Forget();
 		}
 
 		private void OnApplicationQuit()
 		{
 			_gameCancellationTokenSource.Cancel();
 			_gameCancellationTokenSource.Dispose();
-
-			_gameRunnerController.Dispose();
 		}
 	}
 }

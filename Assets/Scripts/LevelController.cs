@@ -2,26 +2,24 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Cysharp.Threading.Tasks.Linq;
 using UnityEngine;
+using Zenject;
 using Object = UnityEngine.Object;
 
 namespace DefaultNamespace
 {
-	public class LevelController : ILevelController
+	public class LevelController : Controller
 	{
-		private const string LevelConfigKey = "Level{0}Config";
-		
-		private IPlayfieldLoader _playfieldLoader;
 		private readonly ICommandsProcessor _commandsProcessor;
 		private readonly IGridMovementProcessor _gridMovementProcessor;
 		private readonly IAddressableAssetsLoader _addressableAssetsLoader;
 		private readonly IPlayfieldCanvasViewModel _playfieldCanvasViewModel;
+		private readonly IResetPlayfieldNotifier _resetPlayfieldNotifier;
 		private readonly IAnimationsProcessor _animationsProcessor;
 		private readonly ILevelWinObserver _levelWinObserver;
 		private readonly IGridViewModel _gridViewModel;
-		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
+		private readonly IFactory<PlayfieldLoaderController> _playfieldLoaderFactory;
 		
-		private int _levelIndex;
-		private LevelConfig _levelConfig;
+		private PlayfieldLoaderController _playfieldLoaderController;
 		private PlayfieldCanvasView _playfieldCanvasView;
 		private CancellationTokenSource _playfieldUpdateTokenSource;
 		private CancellationToken _gameCancellationToken;
@@ -29,42 +27,54 @@ namespace DefaultNamespace
 		private bool _isDisposed;
 
 		public LevelController(
-			IPlayfieldLoader playfieldLoader,
 			ICommandsProcessor commandsProcessor,
 			IGridMovementProcessor gridMovementProcessor,
 			IAddressableAssetsLoader addressableAssetsLoader,
 			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
+			IResetPlayfieldNotifier resetPlayfieldNotifier,
 			IAnimationsProcessor animationsProcessor,
 			ILevelWinObserver levelWinObserver,
 			IGridViewModel gridViewModel,
-			ISaveRestoreDataObserver saveRestoreDataObserver)
+			IFactory<PlayfieldLoaderController> playfieldLoaderFactory)
 		{
-			_playfieldLoader = playfieldLoader;
 			_commandsProcessor = commandsProcessor;
 			_gridMovementProcessor = gridMovementProcessor;
 			_addressableAssetsLoader = addressableAssetsLoader;
 			_playfieldCanvasViewModel = playfieldCanvasViewModel;
+			_resetPlayfieldNotifier = resetPlayfieldNotifier;
 			_animationsProcessor = animationsProcessor;
 			_levelWinObserver = levelWinObserver;
 			_gridViewModel = gridViewModel;
-			_saveRestoreDataObserver = saveRestoreDataObserver;
+			_playfieldLoaderFactory = playfieldLoaderFactory;
 		}
 
-		public UniTask Initialize(int levelIndex, CancellationToken cancellationToken)
+		public override UniTask Initialize(CancellationToken cancellationToken)
 		{
-			_levelIndex = levelIndex;
-
 			return LoadPlayfield(cancellationToken);
 		}
 
-		public UniTask Execute(CancellationToken cancellationToken)
+		public override UniTask Execute(CancellationToken cancellationToken)
 		{
 			_gameCancellationToken = cancellationToken;
 			RecreateUpdateToken(cancellationToken);
-			
 			UpdatePlayfieldState(_playfieldUpdateTokenSource.Token).Forget();
 			
 			return UniTask.CompletedTask;
+		}
+
+		public override async UniTask Stop(CancellationToken cancellationToken)
+		{
+			_playfieldUpdateTokenSource?.Cancel();
+			_playfieldUpdateTokenSource?.Dispose();
+			
+			_resetPlayfieldNotifier.PlayfieldReset -= OnPlayfieldReset;
+			
+			await _playfieldLoaderController.Stop(cancellationToken);
+
+			Object.Destroy(_playfieldCanvasView.gameObject);
+			_playfieldCanvasViewModel?.Dispose();
+			
+			_addressableAssetsLoader.UnloadAssets();
 		}
 
 		private void RecreateUpdateToken(CancellationToken cancellationToken)
@@ -86,43 +96,17 @@ namespace DefaultNamespace
 				}
 			}, cancellationToken);
 		}
-		
-		public void Dispose()
-		{
-			if (_isDisposed)
-			{
-				return;
-			}
-
-			_isDisposed = true;
-			
-			_playfieldUpdateTokenSource?.Cancel();
-			_playfieldUpdateTokenSource?.Dispose();
-			_playfieldLoader?.Dispose();
-			_playfieldLoader = null;
-			
-			_playfieldCanvasViewModel.ResetClicked -= OnResetClicked;
-
-			Object.Destroy(_playfieldCanvasView.gameObject);
-			_playfieldCanvasViewModel?.Dispose();
-			_levelConfig = null;
-			
-			_addressableAssetsLoader.UnloadAssets();
-		}
 
 		private async UniTask LoadPlayfield(CancellationToken cancellationToken)
 		{
-			await LoadLevelConfig(cancellationToken);
 			await LoadPlayfieldCanvasView(cancellationToken);
-			
-			await _playfieldLoader.LoadPlayfield(_levelConfig, cancellationToken);
-			
-			_playfieldCanvasViewModel.ResetClicked += OnResetClicked;
-		}
 
-		private async UniTask LoadLevelConfig(CancellationToken cancellationToken)
-		{
-			_levelConfig = await _addressableAssetsLoader.LoadAsset<LevelConfig>(string.Format(LevelConfigKey, _levelIndex), cancellationToken);
+			_playfieldLoaderController = _playfieldLoaderFactory.Create();
+			
+			await _playfieldLoaderController.Initialize(cancellationToken);
+			await _playfieldLoaderController.Execute(cancellationToken);
+			
+			_resetPlayfieldNotifier.PlayfieldReset += OnPlayfieldReset;
 		}
 		
 		private async UniTask LoadPlayfieldCanvasView(CancellationToken cancellationToken)
@@ -133,13 +117,9 @@ namespace DefaultNamespace
 			_playfieldCanvasViewModel.SetView(_playfieldCanvasView);
 		}
 		
-		private void OnResetClicked()
+		private void OnPlayfieldReset()
 		{
 			RecreateUpdateToken(_gameCancellationToken);
-			
-			_saveRestoreDataObserver.RequestClear();
-			_playfieldLoader.ResetPlayfield(_levelConfig);
-			
 			UpdatePlayfieldState(_playfieldUpdateTokenSource.Token).Forget();
 		}
 	}

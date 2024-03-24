@@ -8,11 +8,19 @@ using Object = UnityEngine.Object;
 
 namespace DefaultNamespace
 {
-	public class PlayfieldLoader : IPlayfieldLoader
+	public class PlayfieldLoaderController : Controller
 	{
+		private const string LevelConfigKey = "Level{0}Config";
+		
 		private readonly IGridViewModel _gridViewModel;
 		private readonly IAddressableAssetsLoader _addressableAssetsLoader;
+		private readonly ILevelIndexProvider _levelIndexProvider;
+		private readonly IPlayfieldCanvasViewModel _playfieldCanvasViewModel;
+		private readonly IResetPlayfieldNotifier _resetPlayfieldNotifier;
+		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
 		private readonly Dictionary<BlockType, PrefabsPool<BlockView>> _blocksPoolsDictionary = new();
+		
+		private LevelConfig _levelConfig;
 		
 		private GameObject _gridPrefab;
 		private GameObject _backgroundPrefab;
@@ -20,37 +28,74 @@ namespace DefaultNamespace
 		private GridModel _gridModel;
 		private GridView _gridView;
 		private GameObject _backgroundView;
-		
-		private bool _isDisposed;
 
-		public PlayfieldLoader(IGridViewModel gridViewModel, IAddressableAssetsLoader addressableAssetsLoader)
+		public PlayfieldLoaderController(
+			IGridViewModel gridViewModel,
+			IAddressableAssetsLoader addressableAssetsLoader,
+			ILevelIndexProvider levelIndexProvider,
+			IPlayfieldCanvasViewModel playfieldCanvasViewModel,
+			IResetPlayfieldNotifier resetPlayfieldNotifier,
+			ISaveRestoreDataObserver saveRestoreDataObserver)
 		{
 			_gridViewModel = gridViewModel;
 			_addressableAssetsLoader = addressableAssetsLoader;
+			_levelIndexProvider = levelIndexProvider;
+			_playfieldCanvasViewModel = playfieldCanvasViewModel;
+			_resetPlayfieldNotifier = resetPlayfieldNotifier;
+			_saveRestoreDataObserver = saveRestoreDataObserver;
+		}
+		
+		public override UniTask Initialize(CancellationToken cancellationToken)
+		{
+			return LoadLevelConfig(cancellationToken);
 		}
 
-		public void Dispose()
+		public override UniTask Execute(CancellationToken cancellationToken)
 		{
-			if (_isDisposed)
-			{
-				return;
-			}
+			_playfieldCanvasViewModel.ResetClicked += OnResetClicked;
+			
+			return LoadPlayfield(cancellationToken);
+		}
 
-			_isDisposed = true;
+		private void OnResetClicked()
+		{
+			_saveRestoreDataObserver.RequestClear();
+			ResetPlayfield();
+			
+			_resetPlayfieldNotifier.NotifyPlayfieldReset();
+		}
+
+		public override UniTask Stop(CancellationToken cancellationToken)
+		{
 			ReturnBlocksToPools();
 			
 			Object.Destroy(_gridView.gameObject);
 			Object.Destroy(_backgroundView.gameObject);
 			
 			_addressableAssetsLoader.UnloadAssets();
+			
+			return UniTask.CompletedTask;
+		}
+		
+		private void ResetPlayfield()
+		{
+			ReturnBlocksToPools();
+			_gridViewModel.ResetScaleFactor();
+			
+			SpawnGrid((GridModel) _levelConfig.GridModel.Clone());
+		}
+		
+		private async UniTask LoadLevelConfig(CancellationToken cancellationToken)
+		{
+			_levelConfig = await _addressableAssetsLoader.LoadAsset<LevelConfig>(string.Format(LevelConfigKey, _levelIndexProvider.CurrentLevelIndex + 1), cancellationToken);
 		}
 
-		public async UniTask LoadPlayfield(LevelConfig levelConfig, CancellationToken cancellationToken)
+		private async UniTask LoadPlayfield(CancellationToken cancellationToken)
 		{
 			var levelRestoreData = PlayerPrefs.GetString("LevelState", null);
 
 			var initialGridState = string.IsNullOrEmpty(levelRestoreData)
-				? (GridModel) levelConfig.GridModel.Clone()
+				? (GridModel) _levelConfig.GridModel.Clone()
 				: JsonConvert.DeserializeObject<GridModel>(levelRestoreData);
 			
 			
@@ -73,14 +118,6 @@ namespace DefaultNamespace
 			_blocksPoolsDictionary.Add(BlockType.Fire, new PrefabsPool<BlockView>(firePrefab));
 			_blocksPoolsDictionary.Add(BlockType.Water, new PrefabsPool<BlockView>(waterPrefab));
 		}
-		
-		public void ResetPlayfield(LevelConfig levelConfig)
-		{
-			ReturnBlocksToPools();
-			_gridViewModel.ResetScaleFactor();
-			
-			SpawnGrid((GridModel) levelConfig.GridModel.Clone());
-		}
 
 		private void ReturnBlocksToPools()
 		{
@@ -98,16 +135,15 @@ namespace DefaultNamespace
 		private void SpawnGrid(GridModel gridModel)
 		{
 			_gridModel = gridModel;
-			
 			_gridViewModel.InitGrid(_gridModel, _gridView);
 			
 			var blocksViews = new BlockView[_gridModel.Grid.Length][];
 
-			for (int x = 0; x < _gridModel.Grid.Length; x++)
+			for (var x = 0; x < _gridModel.Grid.Length; x++)
 			{
 				blocksViews[x] = new BlockView[_gridModel.Grid[x].Cells.Length];
 				
-				for (int y = 0; y < _gridModel.Grid[x].Cells.Length; y++)
+				for (var y = 0; y < _gridModel.Grid[x].Cells.Length; y++)
 				{
 					var cell = _gridModel.Grid[x].Cells[y];
 					

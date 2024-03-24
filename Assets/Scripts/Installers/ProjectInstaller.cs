@@ -14,20 +14,23 @@ namespace DefaultNamespace.Installers
 			Container.BindInterfacesTo<MoveBlockCommandFactory>().AsSingle();
 
 			Container.BindInterfacesTo<AddressableAssetsLoader>().AsTransient();
-			Container.BindInterfacesTo<PlayfieldLoader>().AsTransient();
 			Container.BindInterfacesTo<GridMovementProcessor>().AsSingle();
-			Container.BindInterfacesTo<GameRunnerController>().AsTransient();
 			Container.BindInterfacesTo<PlayfieldCanvasViewModel>().AsSingle();
 			Container.BindInterfacesTo<AnimationsProcessor>().AsSingle();
 			Container.BindInterfacesTo<LevelWinObserver>().AsSingle();
 			Container.BindInterfacesTo<SaveRestoreDataProcessor>().AsSingle();
 			Container.BindInterfacesTo<SaveRestoreDataObserver>().AsSingle();
 			Container.BindInterfacesTo<LevelIndexProvider>().AsSingle();
+			Container.BindInterfacesTo<ResetPlayfieldNotifier>().AsSingle();
 
 			Container.BindFactory<LevelController, LevelControllerFactory>().AsSingle();
 
 			Container.Bind<IGameSettingsConfigProvider>().To<GameSettingsConfigProvider>()
 				.FromInstance(new GameSettingsConfigProvider(_gameSettingsConfig)).AsSingle();
+
+			Container.BindIFactory<GameRunnerController>().To<GameRunnerController>().AsSingle();
+			Container.BindIFactory<PlayfieldLoaderController>().To<PlayfieldLoaderController>().AsSingle();
+			Container.BindIFactory<LevelController>().To<LevelController>().AsSingle();
 		}
 	}
 }
