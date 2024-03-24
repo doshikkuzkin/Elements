@@ -1,3 +1,4 @@
+using Data;
 using UnityEngine;
 
 namespace Providers
@@ -26,7 +27,7 @@ namespace Providers
 
 		private int GetLevelIndex()
 		{
-			_currentLevelIndex ??= PlayerPrefs.GetInt("LevelIndex", 0);
+			_currentLevelIndex ??= PlayerPrefs.GetInt(SaveKeys.LevelIndexKey, 0);
 
 			return _currentLevelIndex.Value;
 		}

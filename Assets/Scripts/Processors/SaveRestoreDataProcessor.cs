@@ -1,4 +1,5 @@
 using System;
+using Data;
 using Newtonsoft.Json;
 using Observers;
 using Providers;
@@ -55,16 +56,16 @@ namespace Processors
 				gridStateToSave = JsonConvert.SerializeObject(_gridViewModel.GridModel);
 			}
 
-			PlayerPrefs.SetInt("LevelIndex", levelIndexToSave);
-			PlayerPrefs.SetString("LevelState", gridStateToSave);
+			PlayerPrefs.SetInt(SaveKeys.LevelIndexKey, levelIndexToSave);
+			PlayerPrefs.SetString(SaveKeys.LevelStateKey, gridStateToSave);
 
 			PlayerPrefs.Save();
 		}
 
 		private void OnClearRequested()
 		{
-			PlayerPrefs.SetInt("LevelIndex", _levelIndexProvider.CurrentLevelIndex);
-			PlayerPrefs.DeleteKey("LevelState");
+			PlayerPrefs.SetInt(SaveKeys.LevelIndexKey, _levelIndexProvider.CurrentLevelIndex);
+			PlayerPrefs.DeleteKey(SaveKeys.LevelStateKey);
 
 			PlayerPrefs.Save();
 		}

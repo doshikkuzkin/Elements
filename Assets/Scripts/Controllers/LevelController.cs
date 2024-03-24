@@ -2,6 +2,7 @@ using System.Threading;
 using Assressables;
 using Cysharp.Threading.Tasks;
 using Cysharp.Threading.Tasks.Linq;
+using Data;
 using Observers;
 using Processors;
 using Providers;
@@ -116,7 +117,7 @@ namespace Controllers
 		private async UniTask LoadPlayfieldCanvasView(CancellationToken cancellationToken)
 		{
 			var canvasPrefab =
-				await _addressableAssetsLoader.LoadAsset<GameObject>("PlayfieldCanvas", cancellationToken);
+				await _addressableAssetsLoader.LoadAsset<GameObject>(AddressablesNames.PlayfieldCanvasName, cancellationToken);
 			_playfieldCanvasView = Object.Instantiate(canvasPrefab).GetComponent<PlayfieldCanvasView>();
 
 			_playfieldCanvasViewModel.SetView(_playfieldCanvasView);

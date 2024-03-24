@@ -17,7 +17,6 @@ namespace Controllers
 {
 	public class PlayfieldLoaderController : Controller
 	{
-		private const string LevelConfigKey = "Level{0}Config";
 		private readonly IAddressableAssetsLoader _addressableAssetsLoader;
 		private readonly Dictionary<int, PrefabsPool<BlockView>> _blocksPoolsDictionary = new();
 		private readonly IGameSettingsConfigProvider _gameSettingsConfigProvider;
@@ -100,20 +99,20 @@ namespace Controllers
 		private async UniTask LoadLevelConfig(CancellationToken cancellationToken)
 		{
 			_levelConfig = await _addressableAssetsLoader.LoadAsset<LevelConfig>(
-				string.Format(LevelConfigKey, _levelIndexProvider.CurrentLevelIndex + 1), cancellationToken);
+				string.Format(AddressablesNames.LevelConfigKey, _levelIndexProvider.CurrentLevelIndex + 1), cancellationToken);
 		}
 
 		private async UniTask LoadPlayfield(CancellationToken cancellationToken)
 		{
-			var levelRestoreData = PlayerPrefs.GetString("LevelState", null);
+			var levelRestoreData = PlayerPrefs.GetString(SaveKeys.LevelStateKey, null);
 
 			var initialGridState = string.IsNullOrEmpty(levelRestoreData)
 				? (GridModel) _levelConfig.GridModel.Clone()
 				: JsonConvert.DeserializeObject<GridModel>(levelRestoreData);
 
 
-			_gridPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Grid", cancellationToken);
-			_backgroundPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Background", cancellationToken);
+			_gridPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>(AddressablesNames.GridPrefabName, cancellationToken);
+			_backgroundPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>(AddressablesNames.BackgroundPrefabName, cancellationToken);
 
 			_backgroundView = Object.Instantiate(_backgroundPrefab);
 			_gridView = Object.Instantiate(_gridPrefab).GetComponent<GridView>();
