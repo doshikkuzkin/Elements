@@ -7,11 +7,12 @@ using Zenject;
 
 public class ProjectRunner : MonoBehaviour
 {
+	private readonly CancellationTokenSource _gameCancellationTokenSource = new();
+
 	[Inject] private IFactory<GameRunnerController> _gameRunnerControllerFactory;
 	[Inject] private IFactory<RootStateMachine> _rootStateMachineFactory;
-		
+
 	private StateMachine _stateMachine;
-	private CancellationTokenSource _gameCancellationTokenSource = new();
 
 	private void Awake()
 	{

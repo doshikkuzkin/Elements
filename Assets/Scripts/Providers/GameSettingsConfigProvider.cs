@@ -4,12 +4,11 @@ namespace Providers
 {
 	public class GameSettingsConfigProvider : IGameSettingsConfigProvider
 	{
-		private readonly GameSettingsConfig _gameSettingsConfig;
-
 		public GameSettingsConfigProvider(GameSettingsConfig gameSettingsConfig)
 		{
-			_gameSettingsConfig = gameSettingsConfig;
+			GameSettingsConfig = gameSettingsConfig;
 		}
-		public GameSettingsConfig GameSettingsConfig => _gameSettingsConfig;
+
+		public GameSettingsConfig GameSettingsConfig { get; }
 	}
 }

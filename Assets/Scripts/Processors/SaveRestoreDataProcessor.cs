@@ -8,24 +8,23 @@ using Zenject;
 
 namespace Processors
 {
-	public class SaveRestoreDataProcessor : ISaveRestoreDataProcessor, IInitializable, IDisposable
+	public class SaveRestoreDataProcessor : IInitializable, IDisposable
 	{
 		private readonly IGridViewModel _gridViewModel;
-		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
 		private readonly ILevelIndexProvider _levelIndexProvider;
+		private readonly ILevelStateProvider _levelStateProvider;
+		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
 
-		public SaveRestoreDataProcessor(IGridViewModel gridViewModel, ISaveRestoreDataObserver saveRestoreDataObserver, ILevelIndexProvider levelIndexProvider)
+		public SaveRestoreDataProcessor(
+			IGridViewModel gridViewModel,
+			ISaveRestoreDataObserver saveRestoreDataObserver,
+			ILevelIndexProvider levelIndexProvider,
+			ILevelStateProvider levelStateProvider)
 		{
 			_gridViewModel = gridViewModel;
 			_saveRestoreDataObserver = saveRestoreDataObserver;
 			_levelIndexProvider = levelIndexProvider;
-		}
-
-
-		public void Initialize()
-		{
-			_saveRestoreDataObserver.SaveRequested += OnSaveRequested;
-			_saveRestoreDataObserver.ClearRequested += OnClearRequested;
+			_levelStateProvider = levelStateProvider;
 		}
 
 		public void Dispose()
@@ -33,13 +32,19 @@ namespace Processors
 			_saveRestoreDataObserver.SaveRequested -= OnSaveRequested;
 			_saveRestoreDataObserver.ClearRequested -= OnClearRequested;
 		}
-		
+
+		public void Initialize()
+		{
+			_saveRestoreDataObserver.SaveRequested += OnSaveRequested;
+			_saveRestoreDataObserver.ClearRequested += OnClearRequested;
+		}
+
 		private void OnSaveRequested()
 		{
-			int levelIndexToSave = 0;
+			var levelIndexToSave = 0;
 			string gridStateToSave;
 
-			if (_gridViewModel.AreAllBlocksDestroyed())
+			if (_levelStateProvider.IsLevelCleared)
 			{
 				levelIndexToSave = _levelIndexProvider.NextLevelIndex;
 				gridStateToSave = string.Empty;
@@ -49,18 +54,18 @@ namespace Processors
 				levelIndexToSave = _levelIndexProvider.CurrentLevelIndex;
 				gridStateToSave = JsonConvert.SerializeObject(_gridViewModel.GridModel);
 			}
-			
+
 			PlayerPrefs.SetInt("LevelIndex", levelIndexToSave);
 			PlayerPrefs.SetString("LevelState", gridStateToSave);
-			
+
 			PlayerPrefs.Save();
 		}
-		
+
 		private void OnClearRequested()
 		{
 			PlayerPrefs.SetInt("LevelIndex", _levelIndexProvider.CurrentLevelIndex);
 			PlayerPrefs.DeleteKey("LevelState");
-			
+
 			PlayerPrefs.Save();
 		}
 	}

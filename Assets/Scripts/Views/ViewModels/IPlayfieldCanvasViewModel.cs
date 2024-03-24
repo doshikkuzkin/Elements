@@ -6,7 +6,7 @@ namespace Views.ViewModels
 	{
 		event Action ResetClicked;
 		event Action NextClicked;
-		
+
 		void SetView(PlayfieldCanvasView view);
 	}
 }

@@ -6,7 +6,7 @@ namespace Views
 	{
 		private const string ShowAnimationTriggerName = "Show";
 		private const string HideAnimationTriggerName = "Hide";
-		
+
 		[SerializeField] private Animator _animator;
 
 		public bool IsLoaderShown { get; private set; } = true;
@@ -20,10 +20,10 @@ namespace Views
 			}
 			
 			IsLoaderHidden = false;
-			
+
 			_animator.SetTrigger(ShowAnimationTriggerName);
 		}
-		
+
 		public void HideLoader()
 		{
 			if (IsLoaderHidden)
@@ -32,7 +32,7 @@ namespace Views
 			}
 			
 			IsLoaderShown = false;
-			
+
 			_animator.SetTrigger(HideAnimationTriggerName);
 		}
 

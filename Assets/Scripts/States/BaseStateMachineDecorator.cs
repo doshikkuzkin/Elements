@@ -4,8 +4,19 @@ namespace States
 {
 	public class BaseStateMachineDecorator : IStateMachineDecorator
 	{
-		public virtual UniTask OnBeforeInitialize() => UniTask.CompletedTask;
-		public virtual UniTask OnBeforeExecute() => UniTask.CompletedTask;
-		public virtual UniTask OnBeforeStop() => UniTask.CompletedTask;
+		public virtual UniTask OnBeforeInitialize()
+		{
+			return UniTask.CompletedTask;
+		}
+
+		public virtual UniTask OnBeforeExecute()
+		{
+			return UniTask.CompletedTask;
+		}
+
+		public virtual UniTask OnBeforeStop()
+		{
+			return UniTask.CompletedTask;
+		}
 	}
 }

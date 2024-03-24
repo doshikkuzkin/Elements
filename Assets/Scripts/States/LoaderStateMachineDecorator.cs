@@ -5,7 +5,7 @@ namespace States
 {
 	public class LoaderStateMachineDecorator : BaseStateMachineDecorator
 	{
-		private ILoaderView _loaderView;
+		private readonly ILoaderView _loaderView;
 
 		public LoaderStateMachineDecorator(ILoaderView loaderView)
 		{
@@ -15,21 +15,21 @@ namespace States
 		public override async UniTask OnBeforeInitialize()
 		{
 			await ShowLoader();
-			
+
 			await base.OnBeforeInitialize();
 		}
 
 		public override async UniTask OnBeforeExecute()
 		{
 			await HideLoader();
-			
+
 			await base.OnBeforeExecute();
 		}
 
 		public override async UniTask OnBeforeStop()
 		{
 			await ShowLoader();
-			
+
 			await base.OnBeforeStop();
 		}
 
@@ -41,10 +41,10 @@ namespace States
 			}
 			
 			_loaderView.ShowLoader();
-			
+
 			return UniTask.WaitUntil(() => _loaderView.IsLoaderShown);
 		}
-		
+
 		private UniTask HideLoader()
 		{
 			if (_loaderView.IsLoaderHidden)
@@ -53,7 +53,7 @@ namespace States
 			}
 			
 			_loaderView.HideLoader();
-			
+
 			return UniTask.WaitUntil(() => _loaderView.IsLoaderHidden);
 		}
 	}

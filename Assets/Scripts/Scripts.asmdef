@@ -1,23 +1,23 @@
 {
-    "name": "Scripts",
-    "rootNamespace": "",
-    "references": [
-        "UniTask",
-        "Zenject",
-        "Unity.TextMeshPro",
-        "UniTask.DOTween",
-        "Unity.Addressables",
-        "UniTask.Addressables",
-        "Unity.ResourceManager",
-        "UniTask.Linq"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Scripts",
+  "rootNamespace": "",
+  "references": [
+    "UniTask",
+    "UniTask.Addressables",
+    "UniTask.DOTween",
+    "UniTask.Linq",
+    "Unity.Addressables",
+    "Unity.ResourceManager",
+    "Unity.TextMeshPro",
+    "Zenject"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

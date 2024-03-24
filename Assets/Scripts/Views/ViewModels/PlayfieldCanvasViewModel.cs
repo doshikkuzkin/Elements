@@ -5,10 +5,10 @@ namespace Views.ViewModels
 	public class PlayfieldCanvasViewModel : IPlayfieldCanvasViewModel
 	{
 		private PlayfieldCanvasView _view;
-		
+
 		public event Action ResetClicked;
 		public event Action NextClicked;
-		
+
 		public void SetView(PlayfieldCanvasView view)
 		{
 			_view = view;
@@ -21,12 +21,12 @@ namespace Views.ViewModels
 		{
 			_view.ResetClicked -= OnResetClicked;
 		}
-		
+
 		private void OnResetClicked()
 		{
 			ResetClicked?.Invoke();
 		}
-		
+
 		private void OnNextClicked()
 		{
 			NextClicked?.Invoke();

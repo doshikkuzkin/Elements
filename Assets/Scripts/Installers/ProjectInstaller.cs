@@ -17,7 +17,7 @@ namespace Installers
 	{
 		[SerializeField] private GameSettingsConfig _gameSettingsConfig;
 		[SerializeField] private LoaderView _loaderView;
-		
+
 		public override void InstallBindings()
 		{
 			Container.BindInterfacesTo<CommandsProcessor>().AsSingle();
@@ -33,6 +33,7 @@ namespace Installers
 			Container.BindInterfacesTo<SaveRestoreDataObserver>().AsSingle();
 			Container.BindInterfacesTo<LevelIndexProvider>().AsSingle();
 			Container.BindInterfacesTo<ResetPlayfieldObserver>().AsSingle();
+			Container.BindInterfacesTo<LevelStateProvider>().AsSingle();
 
 			Container.Bind<IGameSettingsConfigProvider>().To<GameSettingsConfigProvider>()
 				.FromInstance(new GameSettingsConfigProvider(_gameSettingsConfig)).AsSingle();

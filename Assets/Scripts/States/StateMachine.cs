@@ -7,7 +7,7 @@ namespace States
 {
 	public class StateMachine
 	{
-		private readonly List<IStateMachineDecorator> _decorators = new ();
+		private readonly List<IStateMachineDecorator> _decorators = new();
 		private State CurrentState { get; set; }
 
 		protected void Decorate<T>(IFactory<T> decoratorFactory) where T : IStateMachineDecorator
@@ -26,7 +26,7 @@ namespace States
 				await Execute(stateResult.NextState, cancellationToken);
 			}
 		}
-		
+
 		private async UniTask<StateResult> RunCurrentState(CancellationToken cancellationToken)
 		{
 			foreach (var decorator in _decorators)

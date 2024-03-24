@@ -12,31 +12,30 @@ using ScriptableObjects;
 using UnityEngine;
 using Views;
 using Views.ViewModels;
-using Object = UnityEngine.Object;
 
 namespace Controllers
 {
 	public class PlayfieldLoaderController : Controller
 	{
 		private const string LevelConfigKey = "Level{0}Config";
-		
-		private readonly IGridViewModel _gridViewModel;
 		private readonly IAddressableAssetsLoader _addressableAssetsLoader;
+		private readonly Dictionary<int, PrefabsPool<BlockView>> _blocksPoolsDictionary = new();
+		private readonly IGameSettingsConfigProvider _gameSettingsConfigProvider;
+
+		private readonly IGridViewModel _gridViewModel;
 		private readonly ILevelIndexProvider _levelIndexProvider;
 		private readonly IPlayfieldCanvasViewModel _playfieldCanvasViewModel;
 		private readonly IResetPlayfieldObserver _resetPlayfieldObserver;
 		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
-		private readonly Dictionary<int, PrefabsPool<BlockView>> _blocksPoolsDictionary = new();
-		private readonly IGameSettingsConfigProvider _gameSettingsConfigProvider;
-		
-		private LevelConfig _levelConfig;
-		
-		private GameObject _gridPrefab;
 		private GameObject _backgroundPrefab;
-		
-		private GridModel _gridModel;
-		private GridView _gridView;
 		private GameObject _backgroundView;
+
+		private GridModel _gridModel;
+
+		private GameObject _gridPrefab;
+		private GridView _gridView;
+
+		private LevelConfig _levelConfig;
 
 		public PlayfieldLoaderController(
 			IGridViewModel gridViewModel,
@@ -55,7 +54,7 @@ namespace Controllers
 			_saveRestoreDataObserver = saveRestoreDataObserver;
 			_gameSettingsConfigProvider = gameSettingsConfigProvider;
 		}
-		
+
 		public override UniTask Initialize(CancellationToken cancellationToken)
 		{
 			return LoadLevelConfig(cancellationToken);
@@ -64,43 +63,44 @@ namespace Controllers
 		public override UniTask Execute(CancellationToken cancellationToken)
 		{
 			_playfieldCanvasViewModel.ResetClicked += OnResetClicked;
-			
+
 			return LoadPlayfield(cancellationToken);
 		}
 
 		public override UniTask Stop(CancellationToken cancellationToken)
 		{
 			_playfieldCanvasViewModel.ResetClicked -= OnResetClicked;
-			
+
 			ReturnBlocksToPools();
-			
+
 			Object.Destroy(_gridView.gameObject);
 			Object.Destroy(_backgroundView.gameObject);
-			
+
 			_addressableAssetsLoader.UnloadAssets();
-			
+
 			return UniTask.CompletedTask;
 		}
-		
+
 		private void OnResetClicked()
 		{
 			_saveRestoreDataObserver.RequestClear();
 			ResetPlayfield();
-			
+
 			_resetPlayfieldObserver.NotifyPlayfieldReset();
 		}
-		
+
 		private void ResetPlayfield()
 		{
 			ReturnBlocksToPools();
 			_gridViewModel.ResetScaleFactor();
-			
+
 			SpawnGrid((GridModel) _levelConfig.GridModel.Clone());
 		}
-		
+
 		private async UniTask LoadLevelConfig(CancellationToken cancellationToken)
 		{
-			_levelConfig = await _addressableAssetsLoader.LoadAsset<LevelConfig>(string.Format(LevelConfigKey, _levelIndexProvider.CurrentLevelIndex + 1), cancellationToken);
+			_levelConfig = await _addressableAssetsLoader.LoadAsset<LevelConfig>(
+				string.Format(LevelConfigKey, _levelIndexProvider.CurrentLevelIndex + 1), cancellationToken);
 		}
 
 		private async UniTask LoadPlayfield(CancellationToken cancellationToken)
@@ -110,8 +110,8 @@ namespace Controllers
 			var initialGridState = string.IsNullOrEmpty(levelRestoreData)
 				? (GridModel) _levelConfig.GridModel.Clone()
 				: JsonConvert.DeserializeObject<GridModel>(levelRestoreData);
-			
-			
+
+
 			_gridPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Grid", cancellationToken);
 			_backgroundPrefab = await _addressableAssetsLoader.LoadAsset<GameObject>("Background", cancellationToken);
 
@@ -119,18 +119,20 @@ namespace Controllers
 			_gridView = Object.Instantiate(_gridPrefab).GetComponent<GridView>();
 
 			await InitializePools(cancellationToken);
-			
+
 			SpawnGrid(initialGridState);
 		}
 
 		private async UniTask InitializePools(CancellationToken cancellationToken)
 		{
 			var blocksTypes = _gameSettingsConfigProvider.GameSettingsConfig.BlockTypesData;
-			
+
 			for (var i = 0; i < blocksTypes.Length; i++)
 			{
-				var prefab = await _addressableAssetsLoader.LoadAsset<GameObject>(blocksTypes[i].AddressablesKey, cancellationToken);
-				
+				var prefab =
+					await _addressableAssetsLoader.LoadAsset<GameObject>(blocksTypes[i].AddressablesKey,
+						cancellationToken);
+
 				_blocksPoolsDictionary.Add(i, new PrefabsPool<BlockView>(prefab));
 			}
 		}
@@ -152,32 +154,32 @@ namespace Controllers
 		{
 			_gridModel = gridModel;
 			_gridViewModel.InitGrid(_gridModel, _gridView);
-			
+
 			var blocksViews = new BlockView[_gridModel.Grid.Length][];
 
 			for (var x = 0; x < _gridModel.Grid.Length; x++)
 			{
 				blocksViews[x] = new BlockView[_gridModel.Grid[x].Cells.Length];
-				
+
 				for (var y = 0; y < _gridModel.Grid[x].Cells.Length; y++)
 				{
 					var cell = _gridModel.Grid[x].Cells[y];
-					
+
 					if (TrySpawnPrefab(cell.BlockType, _gridViewModel.GetCellPosition(x, y), out var blockView))
 					{
 						blockView.SetCellModel(cell);
 						blockView.SetBlockType(cell.BlockType);
 						blockView.SetIsAllowedToMove(true);
-						
+
 						blocksViews[x][y] = blockView;
 					}
 				}
 			}
-			
+
 			_gridViewModel.InitBlocks(blocksViews);
 			_gridViewModel.ApplyScaleFactor();
 		}
-		
+
 		private bool TrySpawnPrefab(int blockType, Vector3 position, out BlockView blockView)
 		{
 			blockView = null;

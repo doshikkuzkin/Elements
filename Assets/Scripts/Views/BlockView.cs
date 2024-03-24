@@ -12,12 +12,11 @@ namespace Views
 	{
 		private const string DestroyAnimationTriggerName = "Destroy";
 		private const float AnimationDuration = .5f;
-		
-		[SerializeField]
-		private SortingAxis _sortingAxis;
+
+		[SerializeField] private SortingAxis _sortingAxis;
 
 		[SerializeField] private Animator _animator;
-		
+
 		private UniTaskCompletionSource _destroyCompletionSource;
 
 		public CellModel CellModel { get; private set; }
@@ -38,10 +37,11 @@ namespace Views
 		{
 			BlockType = blockType;
 		}
-		
+
 		public async UniTask MoveBlock(Vector3 newPosition, CancellationToken cancellationToken)
 		{
-			await transform.DOLocalMove(newPosition, AnimationDuration).OnUpdate(UpdateSortingOrder).WithCancellation(cancellationToken);
+			await transform.DOLocalMove(newPosition, AnimationDuration).OnUpdate(UpdateSortingOrder)
+				.WithCancellation(cancellationToken);
 		}
 
 		public UniTask DestroyBlock(CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ namespace Views
 
 			return _destroyCompletionSource.Task.AttachExternalCancellation(cancellationToken);
 		}
-		
+
 		private void UpdateSortingOrder()
 		{
 			_sortingAxis.UpdateSortingOrder(transform.localPosition);

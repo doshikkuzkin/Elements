@@ -8,8 +8,8 @@ namespace Assressables
 {
 	public class AddressableAssetsLoader : IAddressableAssetsLoader
 	{
-		private readonly List<AsyncOperationHandle> _loadHandles = new ();
-		
+		private readonly List<AsyncOperationHandle> _loadHandles = new();
+
 		public UniTask<T> LoadAsset<T>(string key, CancellationToken cancellationToken)
 		{
 			var asyncOperationHandle = Addressables.LoadAssetAsync<T>(key);

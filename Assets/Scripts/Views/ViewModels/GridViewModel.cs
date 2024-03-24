@@ -7,28 +7,25 @@ namespace Views.ViewModels
 {
 	public class GridViewModel : IGridViewModel
 	{
-		private GridModel _gridModel;
 		private GridView _gridView;
-		private BlockView[][] _blockViews;
-		
+
 		private float _gridWidth;
 		private float _startGridPositionX;
 		private float _startGridPositionY;
 
-		public BlockView[][] BlockViews => _blockViews;
-		public Transform GridParent => _gridView.GridParent;
+		public BlockView[][] BlockViews { get; private set; }
 
-		public GridModel GridModel => _gridModel;
+		public GridModel GridModel { get; private set; }
 
 		public float CellSize => _gridView.GridCellSize;
 
 		public void InitGrid(GridModel gridModel, GridView gridView)
 		{
-			_gridModel = gridModel;
+			GridModel = gridModel;
 			_gridView = gridView;
-			
+
 			_gridWidth = _gridView.GridCellSize * gridModel.Grid.Length;
-			
+
 			var pivotPosition = _gridView.GridParent.position;
 			_startGridPositionX = pivotPosition.x - _gridWidth / 2 + _gridView.GridCellSize / 2;
 			_startGridPositionY = pivotPosition.y;
@@ -36,9 +33,9 @@ namespace Views.ViewModels
 
 		public void InitBlocks(BlockView[][] blockViews)
 		{
-			_blockViews = blockViews;
+			BlockViews = blockViews;
 		}
-		
+
 		public void ApplyScaleFactor()
 		{
 			_gridView.GridParent.localScale = GetScaleFactor();
@@ -51,24 +48,17 @@ namespace Views.ViewModels
 
 		public Vector3 GetCellPosition(int x, int y)
 		{
-			return new Vector3(_startGridPositionX + x * _gridView.GridCellSize, _startGridPositionY + y * _gridView.GridCellSize, 0);
+			return new Vector3(_startGridPositionX + x * _gridView.GridCellSize,
+				_startGridPositionY + y * _gridView.GridCellSize, 0);
 		}
 
-		public Vector3 GetCellPositionLocal(int x, int y)
-		{
-			var startGridPositionX = 0 - _gridWidth / 2 + _gridView.GridCellSize / 2;
-			var startGridPositionY = 0;
-			
-			return new Vector3(startGridPositionX + x * _gridView.GridCellSize, startGridPositionY + y * _gridView.GridCellSize, 0);
-		}
-		
 		public bool TryGetBlockView(Vector2Int cellPosition, out BlockView blockView)
 		{
-			blockView = _blockViews[cellPosition.x][cellPosition.y];
-			
+			blockView = BlockViews[cellPosition.x][cellPosition.y];
+
 			return blockView != null;
 		}
-		
+
 		public bool IsValidCellPosition(Vector2Int cellPosition)
 		{
 			if (cellPosition.x < 0 || cellPosition.y < 0)
@@ -76,8 +66,8 @@ namespace Views.ViewModels
 				return false;
 			}
 
-			if (cellPosition.x >= _gridModel.Grid.Length ||
-			    cellPosition.y >= _gridModel.Grid[cellPosition.x].Cells.Length)
+			if (cellPosition.x >= GridModel.Grid.Length ||
+			    cellPosition.y >= GridModel.Grid[cellPosition.x].Cells.Length)
 			{
 				return false;
 			}
@@ -87,24 +77,24 @@ namespace Views.ViewModels
 
 		public bool IsEmptyCell(Vector2Int cellPosition)
 		{
-			return _gridModel.Grid[cellPosition.x].Cells[cellPosition.y].BlockType == BlockTypeData.EmptyBlockType;
+			return GridModel.Grid[cellPosition.x].Cells[cellPosition.y].BlockType == BlockTypeData.EmptyBlockType;
 		}
 
 		public void SwapCells(Vector2Int firstCellPosition, Vector2Int secondCellPosition)
 		{
-			var firstCell = _gridModel.Grid[firstCellPosition.x].Cells[firstCellPosition.y];
+			var firstCell = GridModel.Grid[firstCellPosition.x].Cells[firstCellPosition.y];
 			var firstCellType = firstCell.BlockType;
-			var secondCell = _gridModel.Grid[secondCellPosition.x].Cells[secondCellPosition.y];
+			var secondCell = GridModel.Grid[secondCellPosition.x].Cells[secondCellPosition.y];
 			var secondCellType = secondCell.BlockType;
-			
+
 			firstCell.SetBlockType(secondCellType);
 			secondCell.SetBlockType(firstCellType);
 		}
 
 		public void SwapCellsViews(Vector2Int firstCellPosition, Vector2Int secondCellPosition)
 		{
-			var firstCell = _gridModel.Grid[firstCellPosition.x].Cells[firstCellPosition.y];
-			var secondCell = _gridModel.Grid[secondCellPosition.x].Cells[secondCellPosition.y];
+			var firstCell = GridModel.Grid[firstCellPosition.x].Cells[firstCellPosition.y];
+			var secondCell = GridModel.Grid[secondCellPosition.x].Cells[secondCellPosition.y];
 			
 			if (TryGetBlockView(firstCellPosition, out var firstBlockView))
 			{
@@ -116,29 +106,26 @@ namespace Views.ViewModels
 				secondBlockView.SetCellModel(firstCell);
 			}
 			
-			(_blockViews[firstCellPosition.x][firstCellPosition.y],
-					_blockViews[secondCellPosition.x][secondCellPosition.y]) =
-				(_blockViews[secondCellPosition.x][secondCellPosition.y],
-					_blockViews[firstCellPosition.x][firstCellPosition.y]);
+			(BlockViews[firstCellPosition.x][firstCellPosition.y],
+					BlockViews[secondCellPosition.x][secondCellPosition.y]) =
+				(BlockViews[secondCellPosition.x][secondCellPosition.y],
+					BlockViews[firstCellPosition.x][firstCellPosition.y]);
 		}
 
 		public void DestroyCellsViews(IEnumerable<Vector2Int> cellsToDestroy)
 		{
 			foreach (var cell in cellsToDestroy)
 			{
-				if (!TryGetBlockView(cell, out var cellView))
-				{
-					continue;
-				}
-				
+				if (!TryGetBlockView(cell, out var cellView)) continue;
+
 				cellView.gameObject.SetActive(false);
-				_blockViews[cell.x][cell.y] = null;
+				BlockViews[cell.x][cell.y] = null;
 			}
 		}
 
 		public bool AreAllBlocksDestroyed()
 		{
-			if (_gridModel.Grid.SelectMany(column => column.Cells).Any(cell => cell.BlockType != BlockTypeData.EmptyBlockType))
+			if (GridModel.Grid.SelectMany(column => column.Cells).Any(cell => cell.BlockType != BlockTypeData.EmptyBlockType))
 			{
 				return false;
 			}
@@ -148,7 +135,9 @@ namespace Views.ViewModels
 
 		private Vector3 GetScaleFactor()
 		{
-			return _gridWidth > _gridView.MaxGridWidth ? Vector3.one * (_gridView.MaxGridWidth / _gridWidth) : Vector3.one;
+			return _gridWidth > _gridView.MaxGridWidth
+				? Vector3.one * (_gridView.MaxGridWidth / _gridWidth)
+				: Vector3.one;
 		}
 	}
 }

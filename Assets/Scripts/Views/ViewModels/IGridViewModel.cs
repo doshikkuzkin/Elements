@@ -6,12 +6,11 @@ namespace Views.ViewModels
 {
 	public interface IGridViewModel
 	{
-		Transform GridParent { get; }
 		GridModel GridModel { get; }
 		float CellSize { get; }
 
 		BlockView[][] BlockViews { get; }
-		
+
 		void InitGrid(GridModel gridModel, GridView gridView);
 		void InitBlocks(BlockView[][] blockViews);
 

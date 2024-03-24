@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using Data;
 using Observers;
 using Processors;
+using Providers;
 using UnityEngine;
 using Views.ViewModels;
 
@@ -14,21 +15,29 @@ namespace Commands
 	public class MoveBlockCommand : ICommand
 	{
 		private const int CellsInRowToDestroy = 3;
-		
-		private readonly Vector2Int _cellToMove;
-		private readonly Vector2Int _moveDirection;
-		
-		private readonly IGridViewModel _gridViewModel;
 		private readonly IAnimationsProcessor _animationsProcessor;
+
+		private readonly Vector2Int _cellToMove;
+
+		private readonly IGridViewModel _gridViewModel;
+		private readonly ILevelStateProvider _levelStateProvider;
+		private readonly Vector2Int _moveDirection;
 		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
 
-		public MoveBlockCommand(Vector2Int cellToMove, Vector2Int moveDirection, IGridViewModel gridViewModel, IAnimationsProcessor animationsProcessor, ISaveRestoreDataObserver saveRestoreDataObserver)
+		public MoveBlockCommand(
+			Vector2Int cellToMove,
+			Vector2Int moveDirection,
+			IGridViewModel gridViewModel,
+			IAnimationsProcessor animationsProcessor,
+			ISaveRestoreDataObserver saveRestoreDataObserver,
+			ILevelStateProvider levelStateProvider)
 		{
 			_cellToMove = cellToMove;
 			_moveDirection = moveDirection;
 			_gridViewModel = gridViewModel;
 			_animationsProcessor = animationsProcessor;
 			_saveRestoreDataObserver = saveRestoreDataObserver;
+			_levelStateProvider = levelStateProvider;
 		}
 
 		public void Execute(CancellationToken cancellationToken)
@@ -39,7 +48,7 @@ namespace Commands
 			}
 			
 			var targetCellPosition = _cellToMove + _moveDirection;
-				
+
 			_gridViewModel.SwapCells(_cellToMove, targetCellPosition);
 
 			var blockMoveAnimationStep = GetBlockMoveAnimationStep(_cellToMove, targetCellPosition, _moveDirection);
@@ -49,32 +58,37 @@ namespace Commands
 			{
 				normalizeAnimationSteps.Add(new NormalizeGridAnimationStep(moveAnimationSteps, blocksDestroyAnimationStep));
 			}
-			
+
+			_levelStateProvider.SetIsLevelCleared(_gridViewModel.AreAllBlocksDestroyed());
 			_saveRestoreDataObserver.RequestSave();
-			
-			_animationsProcessor.PlayAnimationSequence(blockMoveAnimationStep, normalizeAnimationSteps.ToArray(), cancellationToken).Forget();
+
+			_animationsProcessor
+				.PlayAnimationSequence(blockMoveAnimationStep, normalizeAnimationSteps.ToArray(), cancellationToken)
+				.Forget();
 		}
 
-		private bool TryNormalize(out IEnumerable<BlockMoveAnimationStep> moveAnimationSteps, out BlocksDestroyAnimationStep blocksDestroyAnimationStep)
+		private bool TryNormalize(out IEnumerable<BlockMoveAnimationStep> moveAnimationSteps,
+			out BlocksDestroyAnimationStep blocksDestroyAnimationStep)
 		{
 			moveAnimationSteps = null;
 			blocksDestroyAnimationStep = default;
-			
+
 			var isNormalized = false;
-			
+
 			if (TryGetColumnsToMove(out var columnsToMove))
 			{
 				moveAnimationSteps = MoveColumns(columnsToMove);
-				
+
 				isNormalized = true;
 			}
 
 			if (TryGetCellsToDestroy(out var cellsToDestroy))
 			{
-				blocksDestroyAnimationStep = new BlocksDestroyAnimationStep(cellsToDestroy.Select(cell => cell.Position));
-				
+				blocksDestroyAnimationStep =
+					new BlocksDestroyAnimationStep(cellsToDestroy.Select(cell => cell.Position));
+
 				DestroyCells(cellsToDestroy);
-				
+
 				isNormalized = true;
 			}
 
@@ -84,7 +98,7 @@ namespace Commands
 		private IEnumerable<BlockMoveAnimationStep> MoveColumns(List<ColumnModel> columnsToMove)
 		{
 			var blockMoveAnimationSteps = new List<BlockMoveAnimationStep>();
-			
+
 			foreach (var column in columnsToMove)
 			{
 				for (int i = 1; i < column.Cells.Length; i++)
@@ -98,16 +112,17 @@ namespace Commands
 
 					var cellToMove = column.Cells[i].Position;
 					var firstEmptyCellPosition = firstEmptyCell.Position;
-					
+
 					_gridViewModel.SwapCells(cellToMove, firstEmptyCellPosition);
-					
-					blockMoveAnimationSteps.Add(GetBlockMoveAnimationStep(cellToMove, firstEmptyCellPosition, Vector2Int.down));
+
+					blockMoveAnimationSteps.Add(GetBlockMoveAnimationStep(cellToMove, firstEmptyCellPosition,
+						Vector2Int.down));
 				}
 			}
 
 			return blockMoveAnimationSteps;
 		}
-		
+
 		private void DestroyCells(List<CellModel> cellsToDestroy)
 		{
 			foreach (var cell in cellsToDestroy)
@@ -122,12 +137,14 @@ namespace Commands
 
 			columnsToMove = grid.Where(column =>
 					column.Cells.Where(cell => cell.Position.y > 0)
-						.Any(cell => cell.BlockType != BlockTypeData.EmptyBlockType && _gridViewModel.IsEmptyCell(new Vector2Int(cell.Position.x, cell.Position.y - 1))))
+						.Any(cell =>
+							cell.BlockType != BlockTypeData.EmptyBlockType &&
+							_gridViewModel.IsEmptyCell(new Vector2Int(cell.Position.x, cell.Position.y - 1))))
 				.ToList();
 
 			return columnsToMove.Any();
 		}
-		
+
 		private bool TryGetCellsToDestroy(out List<CellModel> cellsToDestroy)
 		{
 			var grid = _gridViewModel.GridModel.Grid;
@@ -171,7 +188,7 @@ namespace Commands
 				
 				var cellsInRow = 1;
 				var horizontalGroup = cellsGroup.OrderBy(cell => cell.Row).ThenBy(cell => cell.Column).ToArray();
-				
+
 				for (var i = 1; i < horizontalGroup.Length; i++)
 				{
 					if (horizontalGroup[i].Row == horizontalGroup[i - 1].Row && horizontalGroup[i].Column == horizontalGroup[i - 1].Column + 1)
@@ -188,17 +205,17 @@ namespace Commands
 						break;
 					}
 				}
-				
+
 				if (cellsInRow >= CellsInRowToDestroy)
 				{
 					cellsToDestroy.AddRange(cellsGroup);
-					
+
 					continue;
 				}
-				
+
 				var verticalGroup = cellsGroup.OrderBy(cell => cell.Column).ThenBy(cell => cell.Row).ToArray();
 				cellsInRow = 1;
-				
+
 				for (var i = 1; i < verticalGroup.Length; i++)
 				{
 					if (verticalGroup[i].Column == verticalGroup[i - 1].Column && verticalGroup[i].Row == verticalGroup[i - 1].Row + 1)
@@ -225,10 +242,11 @@ namespace Commands
 			return cellsToDestroy.Count > 0;
 		}
 
-		private bool TryGetConnectedCellsGroup(Vector2Int cellPosition, int targetBlockType, out List<CellModel> connectedCells)
+		private bool TryGetConnectedCellsGroup(Vector2Int cellPosition, int targetBlockType,
+			out List<CellModel> connectedCells)
 		{
 			connectedCells = new List<CellModel>();
-			
+
 			GetConnectedCells(cellPosition, targetBlockType, connectedCells);
 
 			return connectedCells.Count > 0;
@@ -242,12 +260,10 @@ namespace Commands
 			GetConnectedCellsInDirection(cellPosition, Vector2Int.right, targetBlockType, targetList);
 		}
 
-		private void GetConnectedCellsInDirection(Vector2Int cellPosition, Vector2Int direction, int targetBlockType, List<CellModel> targetList)
+		private void GetConnectedCellsInDirection(Vector2Int cellPosition, Vector2Int direction, int targetBlockType,
+			List<CellModel> targetList)
 		{
-			if (!IsTargetCellInsideGrid(cellPosition, direction))
-			{
-				return;
-			}
+			if (!IsTargetCellInsideGrid(cellPosition, direction)) return;
 
 			var cellToCheckPosition = cellPosition + direction;
 
@@ -269,13 +285,14 @@ namespace Commands
 			GetConnectedCells(cellToCheckPosition, targetBlockType, targetList);
 		}
 
-		private BlockMoveAnimationStep GetBlockMoveAnimationStep(Vector2Int cellToMove, Vector2Int targetCellPosition, Vector2Int moveDirection)
+		private BlockMoveAnimationStep GetBlockMoveAnimationStep(Vector2Int cellToMove, Vector2Int targetCellPosition,
+			Vector2Int moveDirection)
 		{
 			_gridViewModel.TryGetBlockView(cellToMove, out var blockToMove);
 			_gridViewModel.TryGetBlockView(targetCellPosition, out var blockToSwapWith);
 
 			var cellToSwapWith = _gridViewModel.GridModel.Grid[targetCellPosition.x].Cells[targetCellPosition.y];
-			
+
 			var distanceBetweenCells = new Vector2Int(Math.Abs(targetCellPosition.x - cellToMove.x),
 				Math.Abs(targetCellPosition.y - cellToMove.y));
 			distanceBetweenCells *= moveDirection;
@@ -289,22 +306,22 @@ namespace Commands
 					new BlockMoveInfo(blockToSwapWith, cellToSwapWith.Position, blockToSwapWithDirection)
 				);
 			}
-			
+
 			return new BlockMoveAnimationStep(
 				new BlockMoveInfo(blockToMove, cellToMove, distanceBetweenCells)
 			);
 		}
-		
+
 		private bool IsValidMovement(Vector2Int cellToMove, Vector2Int moveDirection)
 		{
 			return IsTargetCellInsideGrid(cellToMove, moveDirection) &&
 			       IsValidDirection(cellToMove, moveDirection);
 		}
-		
+
 		private bool IsTargetCellInsideGrid(Vector2Int cellToMove, Vector2Int moveDirection)
 		{
 			var newBlockPosition = cellToMove + moveDirection;
-			
+
 			return _gridViewModel.IsValidCellPosition(newBlockPosition);
 		}
 

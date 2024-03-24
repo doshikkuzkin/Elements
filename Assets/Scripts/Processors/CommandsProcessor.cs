@@ -6,8 +6,8 @@ namespace Processors
 {
 	public class CommandsProcessor : ICommandsProcessor
 	{
-		private readonly Queue<ICommand> _commandsQueue = new ();
-		
+		private readonly Queue<ICommand> _commandsQueue = new();
+
 		public void AddCommand(ICommand command)
 		{
 			_commandsQueue.Enqueue(command);
@@ -18,7 +18,7 @@ namespace Processors
 			while (_commandsQueue.Count > 0)
 			{
 				var command = _commandsQueue.Dequeue();
-				
+
 				command.Execute(cancellationToken);
 			}
 		}

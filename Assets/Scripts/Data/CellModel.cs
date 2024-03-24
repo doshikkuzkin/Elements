@@ -8,18 +8,18 @@ namespace Data
 	{
 		public int BlockType;
 
-		public Vector2Int Position => new (Column, Row);
-		public int Column { get; private set; }
-		public int Row { get; private set; }
-		public bool IsConnected { get; private set; }
-
 		public CellModel(int blockType, int column, int row)
 		{
 			BlockType = blockType;
 			Column = column;
 			Row = row;
 		}
-		
+
+		public Vector2Int Position => new(Column, Row);
+		public int Column { get; private set; }
+		public int Row { get; private set; }
+		public bool IsConnected { get; private set; }
+
 		public void SetBlockType(int blockType)
 		{
 			BlockType = blockType;
@@ -30,12 +30,12 @@ namespace Data
 			SetColumn(position.x);
 			SetRow(position.y);
 		}
-		
+
 		public void SetColumn(int column)
 		{
 			Column = column;
 		}
-		
+
 		public void SetRow(int row)
 		{
 			Row = row;

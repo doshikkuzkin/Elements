@@ -6,8 +6,8 @@ namespace Pooling
 	public class PrefabsPool<T> where T : Component
 	{
 		private readonly GameObject _prefab;
-		
-		private Queue<T> _poolInstances = new();
+
+		private readonly Queue<T> _poolInstances = new();
 
 		public PrefabsPool(GameObject prefab, int initialSize = 0)
 		{
@@ -28,11 +28,11 @@ namespace Pooling
 
 			return GetInstance(position, parent);
 		}
-		
+
 		public void Return(T instance)
 		{
 			instance.gameObject.SetActive(false);
-			
+
 			_poolInstances.Enqueue(instance);
 		}
 
@@ -42,17 +42,17 @@ namespace Pooling
 
 			instance.transform.position = position;
 			instance.transform.SetParent(parent);
-			
+
 			instance.gameObject.SetActive(true);
 
 			return instance;
 		}
-		
+
 		private void CreateInstance()
 		{
 			var instance = Object.Instantiate(_prefab);
 			instance.SetActive(false);
-			
+
 			_poolInstances.Enqueue(instance.GetComponent<T>());
 		}
 	}

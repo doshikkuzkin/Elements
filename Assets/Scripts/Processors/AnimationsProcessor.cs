@@ -11,7 +11,7 @@ namespace Processors
 {
 	public class AnimationsProcessor : IAnimationsProcessor
 	{
-		private static int AnimationsInProcessCount = 0;
+		private static int AnimationsInProcessCount;
 		private static bool IsAnimationInProcess;
 
 		private readonly IGridViewModel _gridViewModel;
@@ -27,15 +27,15 @@ namespace Processors
 			NormalizeGridAnimationStep[] normalizeAnimationSteps, CancellationToken cancellationToken)
 		{
 			AnimationsInProcessCount++;
-			
+
 			var disabledBlocks = DisableMovingBlocks(blockMoveAnimationStep, normalizeAnimationSteps);
-			
+
 			await PlaySwapAnimation(blockMoveAnimationStep, cancellationToken);
-			
+
 			await UniTask.WaitUntil(() => IsAnimationInProcess == false, cancellationToken: cancellationToken);
-			
+
 			IsAnimationInProcess = true;
-			
+
 			cancellationToken.ThrowIfCancellationRequested();
 
 			try
@@ -54,22 +54,24 @@ namespace Processors
 			}
 		}
 
-		private async UniTask PlayNormalizeAnimation(NormalizeGridAnimationStep[] normalizeAnimationSteps, CancellationToken cancellationToken)
+		private async UniTask PlayNormalizeAnimation(NormalizeGridAnimationStep[] normalizeAnimationSteps,
+			CancellationToken cancellationToken)
 		{
 			foreach (var normalizeAnimationStep in normalizeAnimationSteps)
 			{
 				if (normalizeAnimationStep.MoveAnimationSteps != null)
 				{
-					var moveAnimationsList = normalizeAnimationStep.MoveAnimationSteps.Select(moveAnimationStep => PlaySwapAnimation(moveAnimationStep, cancellationToken));
+					var moveAnimationsList = normalizeAnimationStep.MoveAnimationSteps.Select(moveAnimationStep =>
+						PlaySwapAnimation(moveAnimationStep, cancellationToken));
 
 					await UniTask.WhenAll(moveAnimationsList);
 				}
 
 				cancellationToken.ThrowIfCancellationRequested();
-				
+
 				var blocksToDestroyPositions =
 					normalizeAnimationStep.BlocksDestroyAnimationStep.BlocksToDestroyPositions?.ToArray();
-				
+
 				if (blocksToDestroyPositions != null)
 				{
 					await blocksToDestroyPositions
@@ -82,23 +84,26 @@ namespace Processors
 
 							return UniTask.CompletedTask;
 						});
-					
+
 					_gridViewModel.DestroyCellsViews(blocksToDestroyPositions);
 				}
 			}
 		}
-		
-		private async UniTask PlaySwapAnimation(BlockMoveAnimationStep blockMoveAnimationStep, CancellationToken cancellationToken)
+
+		private async UniTask PlaySwapAnimation(BlockMoveAnimationStep blockMoveAnimationStep,
+			CancellationToken cancellationToken)
 		{
 			var blockViews = blockMoveAnimationStep.BlockMoveInfo
-				.Select(blockMoveInfo => _gridViewModel.TryGetBlockView(blockMoveInfo.StartBlockPosition, out var blockView)
-					? blockView : null).ToArray();
-			
+				.Select(blockMoveInfo =>
+					_gridViewModel.TryGetBlockView(blockMoveInfo.StartBlockPosition, out var blockView)
+						? blockView
+						: null).ToArray();
+
 			var firstCellToSwap = blockMoveAnimationStep.BlockMoveInfo[0].StartBlockPosition;
 			var secondCellToSwap = firstCellToSwap + blockMoveAnimationStep.BlockMoveInfo[0].Direction;
-			
+
 			_gridViewModel.SwapCellsViews(firstCellToSwap, secondCellToSwap);
-			
+
 			await UniTask.WhenAll(blockMoveAnimationStep.BlockMoveInfo.Select((blockMoveInfo, index) =>
 			{
 				if (blockViews[index] == null)
@@ -107,14 +112,16 @@ namespace Processors
 				}
 				
 				var newPosition = blockViews[index].transform.localPosition + new Vector3(
-					blockMoveInfo.Direction.x * _gridViewModel.CellSize, blockMoveInfo.Direction.y * _gridViewModel.CellSize,
+					blockMoveInfo.Direction.x * _gridViewModel.CellSize,
+					blockMoveInfo.Direction.y * _gridViewModel.CellSize,
 					0);
 
 				return blockViews[index].MoveBlock(newPosition, cancellationToken);
 			}));
 		}
-		
-		private List<BlockView> DisableMovingBlocks(BlockMoveAnimationStep blockMoveAnimationStep, IEnumerable<NormalizeGridAnimationStep> normalizeAnimationSteps)
+
+		private List<BlockView> DisableMovingBlocks(BlockMoveAnimationStep blockMoveAnimationStep,
+			IEnumerable<NormalizeGridAnimationStep> normalizeAnimationSteps)
 		{
 			var animatedCells = new HashSet<Vector2Int>();
 
@@ -137,7 +144,7 @@ namespace Processors
 				}
 
 				var cellsToDestroy = normalizeAnimationStep.BlocksDestroyAnimationStep.BlocksToDestroyPositions;
-				
+
 				if (cellsToDestroy != null)
 				{
 					foreach (var cell in cellsToDestroy)

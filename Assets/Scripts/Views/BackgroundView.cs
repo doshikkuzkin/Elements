@@ -12,10 +12,10 @@ namespace Views
 		[SerializeField] private Vector2 _frequencieRange;
 		[SerializeField] private Vector2 _amplitudeRange;
 		[SerializeField] private Vector2 _speedRange;
-		
+
 		[SerializeField] private GameObject _balloonPrefab;
 		[SerializeField] private Sprite[] _balloonsSprites;
-		
+
 		private readonly float[] _availableDirections = {-1, 1};
 
 		private void Start()
@@ -25,12 +25,12 @@ namespace Views
 				CreateBalloon();
 			}
 		}
-		
+
 		private void CreateBalloon()
 		{
 			var balloon = Instantiate(_balloonPrefab, transform).GetComponent<BalloonView>();
 			balloon.SetSprite(_balloonsSprites[Random.Range(0, _balloonsSprites.Length)]);
-			
+
 			var startX = Random.Range(_startXPositionRange.x, _startXPositionRange.y);
 			var startY = Random.Range(_startYPositionRange.x, _startYPositionRange.y);
 			var direction = _availableDirections[Random.Range(0, _availableDirections.Length)];
@@ -38,7 +38,7 @@ namespace Views
 			var frequency = Random.Range(_frequencieRange.x, _frequencieRange.y);
 			var amplitude = Random.Range(_amplitudeRange.x, _amplitudeRange.y);
 			var speed = Random.Range(_speedRange.x, _speedRange.y);
-			
+
 			balloon.Initialize(startX, startY, distance, direction, frequency, amplitude, speed);
 		}
 	}
