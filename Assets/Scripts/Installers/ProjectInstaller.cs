@@ -1,7 +1,17 @@
+using Assressables;
+using Commands;
+using Controllers;
+using Observers;
+using Processors;
+using Providers;
+using ScriptableObjects;
+using States;
 using UnityEngine;
+using Views;
+using Views.ViewModels;
 using Zenject;
 
-namespace DefaultNamespace.Installers
+namespace Installers
 {
 	public class ProjectInstaller : MonoInstaller
 	{
@@ -22,9 +32,7 @@ namespace DefaultNamespace.Installers
 			Container.BindInterfacesTo<SaveRestoreDataProcessor>().AsSingle();
 			Container.BindInterfacesTo<SaveRestoreDataObserver>().AsSingle();
 			Container.BindInterfacesTo<LevelIndexProvider>().AsSingle();
-			Container.BindInterfacesTo<ResetPlayfieldNotifier>().AsSingle();
-
-			Container.BindFactory<LevelController, LevelControllerFactory>().AsSingle();
+			Container.BindInterfacesTo<ResetPlayfieldObserver>().AsSingle();
 
 			Container.Bind<IGameSettingsConfigProvider>().To<GameSettingsConfigProvider>()
 				.FromInstance(new GameSettingsConfigProvider(_gameSettingsConfig)).AsSingle();

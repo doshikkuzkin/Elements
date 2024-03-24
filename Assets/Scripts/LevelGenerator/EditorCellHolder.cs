@@ -1,9 +1,11 @@
 using System.Linq;
-using DefaultNamespace.Tools;
+using Data;
+using Extensions;
+using ScriptableObjects;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace DefaultNamespace
+namespace LevelGenerator
 {
 	public class EditorCellHolder : MonoBehaviour
 	{

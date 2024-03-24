@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using Data;
+using ScriptableObjects;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace DefaultNamespace
+namespace LevelGenerator
 {
 	public class EditorGridGenerator : MonoBehaviour
 	{
@@ -22,6 +23,7 @@ namespace DefaultNamespace
 		private readonly List<GameObject> _cells = new ();
 		private GridModel _grid;
 
+#if UNITY_EDITOR
 		private void Awake()
 		{
 			_generateButton.onClick.AddListener(GenerateGrid);
@@ -36,7 +38,7 @@ namespace DefaultNamespace
 				return;
 			}
 			
-			var scriptableObject = AssetDatabase.LoadAssetAtPath<LevelConfig>($"Assets/LevelConfigs/Level{levelIndex}Config.asset");
+			var scriptableObject = AssetDataBaseTool.LoadAssetAtPath<LevelConfig>($"Assets/LevelConfigs/Level{levelIndex}Config.asset");
 
 			if (scriptableObject != null)
 			{
@@ -56,28 +58,23 @@ namespace DefaultNamespace
 				return;
 			}
 
-			if (!AssetDatabase.IsValidFolder("Assets/LevelConfigs"))
-			{
-				AssetDatabase.CreateFolder("Assets", "LevelConfigs");
-				AssetDatabase.Refresh();
-			}
+			AssetDataBaseTool.AssertHasFolder("Assets", "LevelConfig");
 
-			var existingAsset = AssetDatabase.LoadAssetAtPath<LevelConfig>($"Assets/LevelConfigs/Level{levelIndex}Config.asset");
+			var existingAsset = AssetDataBaseTool.LoadAssetAtPath<LevelConfig>($"Assets/LevelConfigs/Level{levelIndex}Config.asset");
 			
 			if (existingAsset == null)
 			{
 				var levelConfig = ScriptableObject.CreateInstance<LevelConfig>();
 				levelConfig.GridModel = (GridModel) _grid.Clone();
 				
-				AssetDatabase.CreateAsset(levelConfig, $"Assets/LevelConfigs/Level{levelIndex}Config.asset");
+				AssetDataBaseTool.CreateAsset(levelConfig, $"Assets/LevelConfigs/Level{levelIndex}Config.asset");
 			}
 			else
 			{
 				existingAsset.GridModel = (GridModel) _grid.Clone();
 			}
 			
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
+			AssetDataBaseTool.Save();
 		}
 
 		private void LoadGrid(LevelConfig scriptableObject)
@@ -143,5 +140,6 @@ namespace DefaultNamespace
 				}
 			}
 		}
+#endif
 	}
 }

@@ -1,4 +1,7 @@
-namespace DefaultNamespace.Tools
+using Data;
+using ScriptableObjects;
+
+namespace Extensions
 {
 	public static class GameSettingsConfigExtensions
 	{
