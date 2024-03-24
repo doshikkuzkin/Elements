@@ -16,10 +16,19 @@ public class ProjectRunner : MonoBehaviour
 
 	private void Awake()
 	{
+		DisableAutoRotation();
+		
 		var gameRunnerState = _gameRunnerControllerFactory.Create();
 
 		_stateMachine = _rootStateMachineFactory.Create();
 		_stateMachine.Execute(gameRunnerState, _gameCancellationTokenSource.Token).Forget();
+	}
+	
+	private void DisableAutoRotation()
+	{
+		Screen.autorotateToLandscapeLeft = false;
+		Screen.autorotateToLandscapeRight = false;
+		Screen.orientation = ScreenOrientation.Portrait;
 	}
 
 	private void OnApplicationQuit()
