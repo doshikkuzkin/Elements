@@ -9,7 +9,6 @@ namespace Views
 		[SerializeField] public float _gridCellSize;
 		[SerializeField] private float _maxGridWidth;
 
-		public Transform GridPivot => _gridPivot;
 		public Transform GridParent => _gridParent;
 		public float GridCellSize => _gridCellSize;
 		public float MaxGridWidth => _maxGridWidth;

@@ -1,16 +1,22 @@
 using Commands;
 using UnityEngine;
 using Views;
-using Zenject;
 
 namespace Processors
 {
 	public class GridMovementProcessor : IGridMovementProcessor
 	{
-		[Inject] private ICommandsProcessor _commandsProcessor;
-
+		private readonly ICommandsProcessor _commandsProcessor;
+		private readonly IMoveBlockCommandFactory _moveBlockCommandFactory;
+		
 		private Vector2 _firstPressPosition;
-		[Inject] private IMoveBlockCommandFactory _moveBlockCommandFactory;
+		
+		public GridMovementProcessor(ICommandsProcessor commandsProcessor,
+			IMoveBlockCommandFactory moveBlockCommandFactory)
+		{
+			_commandsProcessor = commandsProcessor;
+			_moveBlockCommandFactory = moveBlockCommandFactory;
+		}
 
 		public void ProcessUserInput()
 		{

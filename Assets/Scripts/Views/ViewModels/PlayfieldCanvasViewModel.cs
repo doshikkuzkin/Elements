@@ -20,6 +20,7 @@ namespace Views.ViewModels
 		public void Dispose()
 		{
 			_view.ResetClicked -= OnResetClicked;
+			_view.NextClicked -= OnNextClicked;
 		}
 
 		private void OnResetClicked()

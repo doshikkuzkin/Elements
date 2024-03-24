@@ -19,9 +19,7 @@ namespace Controllers
 		private readonly ISaveRestoreDataObserver _saveRestoreDataObserver;
 		private CancellationToken _gameCancellationToken;
 
-		private bool _isDisposed;
 		private CancellationTokenSource _levelCancellationSource;
-
 		private LevelController _levelController;
 
 		public PlayfieldState(

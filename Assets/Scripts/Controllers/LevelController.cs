@@ -86,24 +86,6 @@ namespace Controllers
 			_addressableAssetsLoader.UnloadAssets();
 		}
 
-		private void RecreateUpdateToken(CancellationToken cancellationToken)
-		{
-			_playfieldUpdateTokenSource?.Cancel();
-			_playfieldUpdateTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		}
-
-		private UniTask UpdatePlayfieldState(CancellationToken cancellationToken)
-		{
-			return UniTaskAsyncEnumerable.EveryUpdate().ForEachAsync(_ =>
-			{
-				_gridMovementProcessor.ProcessUserInput();
-				_commandsProcessor.ProcessCommands(cancellationToken);
-
-				if (_levelStateProvider.IsLevelCleared && !_animationsProcessor.HasAnimationsInProcess)
-					_levelWinObserver.RequestLevelWin();
-			}, cancellationToken);
-		}
-
 		private async UniTask LoadPlayfield(CancellationToken cancellationToken)
 		{
 			await LoadPlayfieldCanvasView(cancellationToken);
@@ -132,6 +114,24 @@ namespace Controllers
 			RecreateUpdateToken(_gameCancellationToken);
 			_animationsProcessor.ClearAnimationsSequence();
 			UpdatePlayfieldState(_playfieldUpdateTokenSource.Token).Forget();
+		}
+		
+		private UniTask UpdatePlayfieldState(CancellationToken cancellationToken)
+		{
+			return UniTaskAsyncEnumerable.EveryUpdate().ForEachAsync(_ =>
+			{
+				_gridMovementProcessor.ProcessUserInput();
+				_commandsProcessor.ProcessCommands(cancellationToken);
+
+				if (_levelStateProvider.IsLevelCleared && !_animationsProcessor.HasAnimationsInProcess)
+					_levelWinObserver.RequestLevelWin();
+			}, cancellationToken);
+		}
+		
+		private void RecreateUpdateToken(CancellationToken cancellationToken)
+		{
+			_playfieldUpdateTokenSource?.Cancel();
+			_playfieldUpdateTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		}
 	}
 }

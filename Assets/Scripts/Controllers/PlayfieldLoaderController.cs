@@ -80,22 +80,6 @@ namespace Controllers
 			return UniTask.CompletedTask;
 		}
 
-		private void OnResetClicked()
-		{
-			_saveRestoreDataObserver.RequestClear();
-			ResetPlayfield();
-
-			_resetPlayfieldObserver.NotifyPlayfieldReset();
-		}
-
-		private void ResetPlayfield()
-		{
-			ReturnBlocksToPools();
-			_gridViewModel.ResetScaleFactor();
-
-			SpawnGrid((GridModel) _levelConfig.GridModel.Clone());
-		}
-
 		private async UniTask LoadLevelConfig(CancellationToken cancellationToken)
 		{
 			_levelConfig = await _addressableAssetsLoader.LoadAsset<LevelConfig>(
@@ -133,19 +117,6 @@ namespace Controllers
 						cancellationToken);
 
 				_blocksPoolsDictionary.Add(i, new PrefabsPool<BlockView>(prefab));
-			}
-		}
-
-		private void ReturnBlocksToPools()
-		{
-			foreach (var blockViews in _gridViewModel.BlockViews)
-			{
-				var views = blockViews.Where(blockView => blockView != null);
-					
-				foreach (var view in views)
-				{
-					_blocksPoolsDictionary[view.BlockType].Return(view);
-				}
 			}
 		}
 
@@ -191,6 +162,35 @@ namespace Controllers
 			blockView = _blocksPoolsDictionary[blockType].Get(position, _gridView.GridParent);
 
 			return true;
+		}
+		
+		private void OnResetClicked()
+		{
+			_saveRestoreDataObserver.RequestClear();
+			ResetPlayfield();
+
+			_resetPlayfieldObserver.NotifyPlayfieldReset();
+		}
+
+		private void ResetPlayfield()
+		{
+			ReturnBlocksToPools();
+			_gridViewModel.ResetScaleFactor();
+
+			SpawnGrid((GridModel) _levelConfig.GridModel.Clone());
+		}
+		
+		private void ReturnBlocksToPools()
+		{
+			foreach (var blockViews in _gridViewModel.BlockViews)
+			{
+				var views = blockViews.Where(blockView => blockView != null);
+					
+				foreach (var view in views)
+				{
+					_blocksPoolsDictionary[view.BlockType].Return(view);
+				}
+			}
 		}
 	}
 }

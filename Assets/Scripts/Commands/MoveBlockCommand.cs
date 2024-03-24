@@ -288,9 +288,6 @@ namespace Commands
 		private BlockMoveAnimationStep GetBlockMoveAnimationStep(Vector2Int cellToMove, Vector2Int targetCellPosition,
 			Vector2Int moveDirection)
 		{
-			_gridViewModel.TryGetBlockView(cellToMove, out var blockToMove);
-			_gridViewModel.TryGetBlockView(targetCellPosition, out var blockToSwapWith);
-
 			var cellToSwapWith = _gridViewModel.GridModel.Grid[targetCellPosition.x].Cells[targetCellPosition.y];
 
 			var distanceBetweenCells = new Vector2Int(Math.Abs(targetCellPosition.x - cellToMove.x),
@@ -302,13 +299,13 @@ namespace Commands
 				var blockToSwapWithDirection = distanceBetweenCells * -1;
 
 				return new BlockMoveAnimationStep(
-					new BlockMoveInfo(blockToMove, cellToMove, distanceBetweenCells),
-					new BlockMoveInfo(blockToSwapWith, cellToSwapWith.Position, blockToSwapWithDirection)
+					new BlockMoveInfo(cellToMove, distanceBetweenCells),
+					new BlockMoveInfo(cellToSwapWith.Position, blockToSwapWithDirection)
 				);
 			}
 
 			return new BlockMoveAnimationStep(
-				new BlockMoveInfo(blockToMove, cellToMove, distanceBetweenCells)
+				new BlockMoveInfo(cellToMove, distanceBetweenCells)
 			);
 		}
 

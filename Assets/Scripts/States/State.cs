@@ -5,7 +5,7 @@ namespace States
 {
 	public abstract class State
 	{
-		public UniTaskCompletionSource<StateResult> StateCompletionSource { get; } = new();
+		protected UniTaskCompletionSource<StateResult> StateCompletionSource { get; } = new();
 
 		public abstract UniTask Initialize(CancellationToken cancellationToken);
 		public abstract UniTask<StateResult> Execute(CancellationToken cancellationToken);
