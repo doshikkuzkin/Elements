@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace LevelGenerator
+namespace LevelEditor
 {
 	public class EditorGridGenerator : MonoBehaviour
 	{

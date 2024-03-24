@@ -2,7 +2,7 @@
 using UnityEditor;
 #endif
 
-namespace LevelGenerator
+namespace LevelEditor
 {
 	public static class AssetDataBaseTool
 	{

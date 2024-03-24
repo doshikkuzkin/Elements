@@ -5,7 +5,7 @@ using ScriptableObjects;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace LevelGenerator
+namespace LevelEditor
 {
 	public class EditorCellHolder : MonoBehaviour
 	{

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace LevelGenerator
+namespace LevelEditor
 {
 	[Serializable]
 	public class EditorBlockViewData
