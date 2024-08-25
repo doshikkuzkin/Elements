@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Assets.Scripts.Extensions;
 using Cysharp.Threading.Tasks;
 using Data;
 using Observers;
 using Processors;
 using Providers;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using Views.ViewModels;
 
@@ -14,7 +16,6 @@ namespace Commands
 {
 	public class MoveBlockCommand : ICommand
 	{
-		private const int CellsInRowToDestroy = 3;
 		private readonly IAnimationsProcessor _animationsProcessor;
 
 		private readonly Vector2Int _cellToMove;
@@ -151,8 +152,6 @@ namespace Commands
 
 			cellsToDestroy = new List<CellModel>();
 
-			var connectedCellsGroups = new List<List<CellModel>>();
-
 			foreach (var column in grid)
 			{
 				foreach (var cell in column.Cells)
@@ -167,76 +166,17 @@ namespace Commands
 						continue;
 					}
 
-					if (TryGetConnectedCellsGroup(cell.Position, cell.BlockType, out var connectedCells))
+					if (_gridViewModel.GridModel.CheckCellsSequenceExisting(cell.Position, cell.BlockType) &&
+						TryGetConnectedCellsGroup(cell.Position, cell.BlockType, out var connectedCells))
 					{
-						connectedCellsGroups.Add(connectedCells);
+						cellsToDestroy.AddRange(connectedCells);
 					}
 				}
 			}
 
-			foreach (var cell in connectedCellsGroups.SelectMany(cellsGroup => cellsGroup))
+			foreach (var cell in cellsToDestroy)
 			{
 				cell.SetIsConnected(false);
-			}
-
-			foreach (var cellsGroup in connectedCellsGroups)
-			{
-				if (cellsGroup.Count < CellsInRowToDestroy)
-				{
-					continue;
-				}
-				
-				var cellsInRow = 1;
-				var horizontalGroup = cellsGroup.OrderBy(cell => cell.Row).ThenBy(cell => cell.Column).ToArray();
-
-				for (var i = 1; i < horizontalGroup.Length; i++)
-				{
-					if (horizontalGroup[i].Row == horizontalGroup[i - 1].Row && horizontalGroup[i].Column == horizontalGroup[i - 1].Column + 1)
-					{
-						cellsInRow++;
-					}
-					else
-					{
-						cellsInRow = 1;
-					}
-					
-					if (cellsInRow >= CellsInRowToDestroy)
-					{
-						break;
-					}
-				}
-
-				if (cellsInRow >= CellsInRowToDestroy)
-				{
-					cellsToDestroy.AddRange(cellsGroup);
-
-					continue;
-				}
-
-				var verticalGroup = cellsGroup.OrderBy(cell => cell.Column).ThenBy(cell => cell.Row).ToArray();
-				cellsInRow = 1;
-
-				for (var i = 1; i < verticalGroup.Length; i++)
-				{
-					if (verticalGroup[i].Column == verticalGroup[i - 1].Column && verticalGroup[i].Row == verticalGroup[i - 1].Row + 1)
-					{
-						cellsInRow++;
-					}
-					else
-					{
-						cellsInRow = 1;
-					}
-					
-					if (cellsInRow >= CellsInRowToDestroy)
-					{
-						break;
-					}
-				}
-				
-				if (cellsInRow >= CellsInRowToDestroy)
-				{
-					cellsToDestroy.AddRange(cellsGroup);
-				}
 			}
 
 			return cellsToDestroy.Count > 0;
@@ -319,7 +259,7 @@ namespace Commands
 		{
 			var newBlockPosition = cellToMove + moveDirection;
 
-			return _gridViewModel.IsValidCellPosition(newBlockPosition);
+			return _gridViewModel.GridModel.IsValidCellPosition(newBlockPosition);
 		}
 
 		private bool IsValidDirection(Vector2Int cellToMove, Vector2Int moveDirection)

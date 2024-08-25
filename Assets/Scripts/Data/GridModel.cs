@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Data
 {
@@ -49,6 +50,22 @@ namespace Data
 			CopyGrid(Grid, updatedGrid);
 
 			Grid = updatedGrid;
+		}
+
+		public bool IsValidCellPosition(Vector2Int cellPosition)
+		{
+			if (cellPosition.x < 0 || cellPosition.y < 0)
+			{
+				return false;
+			}
+
+			if (cellPosition.x >= Grid.Length ||
+				cellPosition.y >= Grid[cellPosition.x].Cells.Length)
+			{
+				return false;
+			}
+
+			return true;
 		}
 
 		private void CopyGrid(ColumnModel[] source, ColumnModel[] destination)

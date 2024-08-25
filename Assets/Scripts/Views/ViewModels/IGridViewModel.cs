@@ -18,7 +18,6 @@ namespace Views.ViewModels
 		void ResetScaleFactor();
 		Vector3 GetCellPosition(int x, int y);
 		bool TryGetBlockView(Vector2Int cellPosition, out BlockView blockView);
-		bool IsValidCellPosition(Vector2Int cellPosition);
 		bool IsEmptyCell(Vector2Int cellPosition);
 		void SwapCells(Vector2Int firstCellPosition, Vector2Int secondCellPosition);
 		void SwapCellsViews(Vector2Int firstCellPosition, Vector2Int secondCellPosition);

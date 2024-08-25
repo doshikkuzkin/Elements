@@ -59,22 +59,6 @@ namespace Views.ViewModels
 			return blockView != null;
 		}
 
-		public bool IsValidCellPosition(Vector2Int cellPosition)
-		{
-			if (cellPosition.x < 0 || cellPosition.y < 0)
-			{
-				return false;
-			}
-
-			if (cellPosition.x >= GridModel.Grid.Length ||
-			    cellPosition.y >= GridModel.Grid[cellPosition.x].Cells.Length)
-			{
-				return false;
-			}
-
-			return true;
-		}
-
 		public bool IsEmptyCell(Vector2Int cellPosition)
 		{
 			return GridModel.Grid[cellPosition.x].Cells[cellPosition.y].BlockType == BlockTypeData.EmptyBlockType;
